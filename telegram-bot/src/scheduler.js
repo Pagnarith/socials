@@ -68,6 +68,82 @@ async function sendScheduledMessage(bot, message) {
   return bot.telegram.sendMessage(channelId, message, { parse_mode: 'Markdown' });
 }
 
+function inferVideoPlatform(title = '') {
+  const normalizedTitle = title.toLowerCase();
+
+  if (normalizedTitle.includes('rhino') || normalizedTitle.includes('3d')) {
+    return 'rhino';
+  }
+
+  if (normalizedTitle.includes('minecraft') || normalizedTitle.includes('add-on') || normalizedTitle.includes('addon')) {
+    return 'minecraft';
+  }
+
+  return 'youtube';
+}
+
+export async function sendNewVideoAlert(bot, title, url, platform = 'youtube') {
+  const emoji = platform === 'minecraft' ? '🎮' : platform === 'rhino' ? '🖥️' : '📺';
+  const message = `
+🔔 **New Video Alert!**
+
+${emoji} *${title}*
+
+▶️ Watch now: ${url}
+
+Don't forget to like, comment & share! 🙌
+    `;
+
+  return sendScheduledMessage(bot, message);
+}
+
+export async function checkAndSendLatestYouTubeAlert(bot) {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  const channelId = process.env.YOUTUBE_CHANNEL_ID;
+  const lookbackMinutes = Number(process.env.YOUTUBE_ALERT_WINDOW_MINUTES || '70');
+
+  if (!apiKey || !channelId) {
+    throw new Error('Missing YOUTUBE_API_KEY or YOUTUBE_CHANNEL_ID');
+  }
+
+  const publishedAfter = new Date(Date.now() - lookbackMinutes * 60 * 1000).toISOString();
+  const searchParams = new URLSearchParams({
+    key: apiKey,
+    channelId,
+    part: 'snippet',
+    eventType: 'completed',
+    maxResults: '5',
+    order: 'date',
+    publishedAfter,
+    type: 'video'
+  });
+
+  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams.toString()}`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`YouTube API error: ${JSON.stringify(data)}`);
+  }
+
+  const items = Array.isArray(data.items) ? data.items : [];
+
+  if (items.length === 0) {
+    return { sent: false, count: 0 };
+  }
+
+  const uploads = items
+    .filter((item) => item.id?.videoId && item.snippet?.title)
+    .sort((left, right) => new Date(left.snippet.publishedAt) - new Date(right.snippet.publishedAt));
+
+  for (const item of uploads) {
+    const title = item.snippet.title;
+    const url = `https://www.youtube.com/watch?v=${item.id.videoId}`;
+    await sendNewVideoAlert(bot, title, url, inferVideoPlatform(title));
+  }
+
+  return { sent: true, count: uploads.length };
+}
+
 export async function sendDailyContentReminder(bot) {
   return sendScheduledMessage(bot, dailyScheduleMessage());
 }
@@ -113,17 +189,15 @@ export function scheduledJobs(bot) {
 
   // New video notification helper
   bot.newVideoNotification = (platform, title, url) => {
-    const emoji = platform === 'minecraft' ? '🎮' : '🖥️';
-    bot.telegram.sendMessage(channelId, `
-🔔 **New Video Alert!**
-
-${emoji} *${title}*
-
-▶️ Watch now: ${url}
-
-Don't forget to like, comment & share! 🙌
-    `, { parse_mode: 'Markdown' });
+    return sendNewVideoAlert(bot, title, url, platform);
   };
+
+  // Hourly YouTube upload check
+  cron.schedule('5 * * * *', () => {
+    checkAndSendLatestYouTubeAlert(bot).catch((error) => {
+      console.error('Failed to check latest YouTube uploads:', error);
+    });
+  });
 
   console.log('⏰ Scheduled jobs initialized');
 }
