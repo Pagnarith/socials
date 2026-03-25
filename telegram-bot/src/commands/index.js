@@ -18,7 +18,7 @@ I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
 🔹 /help — All commands
 
 Visit: https://social.chakriya.net
-Handle: @iprickypagnarith
+Handle: @PagnarithImphan
 
 Stay creative! 🎨
     `;
