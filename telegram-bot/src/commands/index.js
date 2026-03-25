@@ -1,4 +1,6 @@
 import { Markup } from 'telegraf';
+import { SOCIAL_LINKS } from '../config.js';
+import { isAdmin } from '../admin.js';
 
 export function registerCommands(bot) {
   // /start — Welcome message
@@ -17,12 +19,12 @@ I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
 🔹 /media — 📡 Manage all social media (admin)
 🔹 /help — All commands
 
-Visit: https://social.chakriya.net
+Visit: ${SOCIAL_LINKS.website}
 Handle: @PagnarithImphan
 
 Stay creative! 🎨
     `;
-    ctx.replyWithMarkdown(welcomeMessage, mainMenuKeyboard());
+    ctx.replyWithMarkdown(welcomeMessage.trim(), mainMenuKeyboard());
   });
 
   // /menu — Interactive main menu
@@ -58,7 +60,7 @@ Coming soon — currently in development!
 
 Use /links to find all our channels!
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🎬 YouTube Channel', 'https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg')],
+      [Markup.button.url('🎬 YouTube Channel', SOCIAL_LINKS.youtube)],
       [Markup.button.callback('🔔 Notify Me on Release', 'notify_minecraft')],
     ]));
   });
@@ -81,8 +83,8 @@ Learn 3D modeling in Rhinoceros from scratch!
 
 Use /links to find all our channels!
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🎬 YouTube Tutorials', 'https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg')],
-      [Markup.button.url('📱 TikTok Tips', 'https://www.tiktok.com/@iprickypagnarith')],
+      [Markup.button.url('🎬 YouTube Tutorials', SOCIAL_LINKS.youtube)],
+      [Markup.button.url('📱 TikTok Tips', SOCIAL_LINKS.tiktok)],
     ]));
   });
 
@@ -91,10 +93,10 @@ Use /links to find all our channels!
     ctx.replyWithMarkdown(`
 🔗 *Our Social Media*
 
-📺 YouTube: [Subscribe here](https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg)
-📘 Facebook: [Follow our page](https://www.facebook.com/chakriyanet)
-📷 Instagram: [Follow us](https://www.instagram.com/iprickypagnarith/)
-📱 TikTok: [Follow us](https://www.tiktok.com/@iprickypagnarith)
+📺 YouTube: [Subscribe here](${SOCIAL_LINKS.youtube})
+📘 Facebook: [Follow our page](${SOCIAL_LINKS.facebook})
+📷 Instagram: [Follow us](${SOCIAL_LINKS.instagram})
+📱 TikTok: [Follow us](${SOCIAL_LINKS.tiktok})
 💬 Telegram: You're already here! 🎉
 
 🛒 Minecraft Marketplace: Coming soon!
@@ -125,7 +127,7 @@ To unsubscribe, use /unsubscribe
 
   // /help — All available commands
   bot.command('help', (ctx) => {
-    ctx.replyWithMarkdown(`
+    let msg = `
 📖 *Available Commands*
 
 🏠 /start — Welcome message
@@ -136,9 +138,20 @@ To unsubscribe, use /unsubscribe
 🔗 /links — Social media links
 🔔 /subscribe — Get notifications
 🔕 /unsubscribe — Stop notifications
-📡 /media — Manage social media (admin)
-❓ /help — This help message
-    `);
+❓ /help — This help message`;
+
+    if (isAdmin(ctx)) {
+      msg += `
+
+🔧 *Admin Commands*
+📡 /media — Media management menu
+📺 /yt\\_info · /yt\\_desc · /yt\\_alerts
+📘 /fb\\_info · /fb\\_about · /fb\\_desc · /fb\\_web
+💬 /tg\\_info · /tg\\_desc · /tg\\_short
+📷 /ig\\_info · 📱 /tk\\_info`;
+    }
+
+    ctx.replyWithMarkdown(msg.trim());
   });
 }
 

@@ -20,33 +20,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { isAdmin, adminOnly } from '../admin.js';
+import { SOCIAL_LINKS } from '../config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TOKEN_PATH = path.resolve(__dirname, '../../../tokens/youtube.json');
-
-// ─── Admin guard ────────────────────────────────────────────
-const ADMIN_IDS = [
-  process.env.TELEGRAM_ADMIN_ID || '',
-  process.env.TELEGRAM_ADMIN_IDS || ''
-]
-  .join(',')
-  .split(',')
-  .map((id) => id.trim())
-  .filter(Boolean);
-
-function isAdmin(ctx) {
-  const userId = String(ctx.from?.id);
-  if (ADMIN_IDS.length === 0) return true;          // no list → open (dev mode)
-  return ADMIN_IDS.includes(userId);
-}
-
-function adminOnly(ctx) {
-  if (!isAdmin(ctx)) {
-    ctx.reply('⛔ Admin-only command.');
-    return false;
-  }
-  return true;
-}
 
 function extractArgs(ctx) {
   const text = ctx.message?.text || '';
@@ -77,7 +55,7 @@ async function fbPageToken() {
   const sysToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
   if (!pageId || !sysToken) throw new Error('Missing FACEBOOK_PAGE_ID or FACEBOOK_PAGE_ACCESS_TOKEN');
   const url = `https://graph.facebook.com/v19.0/${pageId}?fields=access_token&access_token=${sysToken}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   const data = await res.json();
   if (data?.access_token) {
     _fbTokenCache = data.access_token;
@@ -93,7 +71,7 @@ async function fbUpdate(field, value) {
   const params = new URLSearchParams();
   params.append(field, value);
   params.append('access_token', token);
-  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}`, { method: 'POST', body: params });
+  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}`, { method: 'POST', body: params, signal: AbortSignal.timeout(8000) });
   return res.json();
 }
 
@@ -102,7 +80,7 @@ async function fbInfo() {
   const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
   if (!pageId || !token) throw new Error('Missing FACEBOOK_PAGE_ID or FACEBOOK_PAGE_ACCESS_TOKEN');
   const fields = 'name,about,description,website,category,fan_count';
-  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}?fields=${fields}&access_token=${token}`);
+  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}?fields=${fields}&access_token=${token}`, { signal: AbortSignal.timeout(8000) });
   return res.json();
 }
 
@@ -113,6 +91,7 @@ async function tgApiCall(method, body = {}) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(8000)
   });
   return res.json();
 }
@@ -165,6 +144,7 @@ TikTok (manual):
   bot.command('yt_info', async (ctx) => {
     if (!adminOnly(ctx)) return;
     try {
+      await ctx.sendChatAction('typing');
       const yt = await getYouTubeClient();
       const res = await yt.channels.list({ part: 'snippet,statistics,brandingSettings', mine: true });
       const ch = res.data.items?.[0];
@@ -194,6 +174,7 @@ ${b?.description || s.description || '(empty)'}
     const desc = extractArgs(ctx);
     if (!desc) return ctx.reply('Usage: /yt_desc <new description>');
     try {
+      await ctx.sendChatAction('typing');
       const yt = await getYouTubeClient();
       const list = await yt.channels.list({ part: 'brandingSettings', mine: true });
       const ch = list.data.items?.[0];
@@ -212,6 +193,7 @@ ${b?.description || s.description || '(empty)'}
     if (!adminOnly(ctx)) return;
 
     try {
+      await ctx.sendChatAction('typing');
       const { loadAlertState } = await import('../../../scripts/lib/youtube-alert-state.js');
       const state = await loadAlertState();
       const videos = state.videos.slice(0, 5);
@@ -242,6 +224,7 @@ ${b?.description || s.description || '(empty)'}
   bot.command('fb_info', async (ctx) => {
     if (!adminOnly(ctx)) return;
     try {
+      await ctx.sendChatAction('typing');
       const info = await fbInfo();
       ctx.replyWithMarkdown(`
 📘 *Facebook Page*
@@ -299,6 +282,7 @@ ${info.description || '(empty)'}
   bot.command('tg_info', async (ctx) => {
     if (!adminOnly(ctx)) return;
     try {
+      await ctx.sendChatAction('typing');
       const [me, desc, short] = await Promise.all([
         tgApiCall('getMe'),
         tgApiCall('getMyDescription'),
@@ -356,7 +340,7 @@ Open Instagram → Edit Profile → Bio, then paste:
 ${IG_BIO}
 \`\`\`
 
-🔗 https://instagram.com/iprickypagnarith
+🔗 ${SOCIAL_LINKS.instagram}
     `);
   });
 
@@ -372,7 +356,7 @@ Open TikTok → Edit Profile → Bio, then paste:
 ${TK_BIO}
 \`\`\`
 
-🔗 https://tiktok.com/@iprickypagnarith
+🔗 ${SOCIAL_LINKS.tiktok}
     `);
   });
 }

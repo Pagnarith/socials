@@ -15,5 +15,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  return callback(req, res);
+  try {
+    return await callback(req, res);
+  } catch (error) {
+    console.error('Webhook handler error:', error);
+    if (!res.headersSent) {
+      return res.status(200).json({ ok: true });
+    }
+  }
 }

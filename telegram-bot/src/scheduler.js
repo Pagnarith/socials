@@ -1,5 +1,5 @@
 // node-cron loaded lazily inside scheduledJobs() to avoid penalising serverless cold starts
-const CAMBODIA_TIMEZONE = 'Asia/Phnom_Penh';
+import { CAMBODIA_TIMEZONE } from './config.js';
 
 function getCambodiaDateParts(date = new Date()) {
   const formatter = new Intl.DateTimeFormat('en-US', {
@@ -35,7 +35,8 @@ function requireChannelId() {
 }
 
 function dailyScheduleMessage() {
-  const weekday = getCambodiaDateParts().weekday;
+  const dateParts = getCambodiaDateParts();
+  const weekday = dateParts.weekday;
   const scheduleMap = {
     Sun: '📅 Sunday: Rest day — plan next week\'s content!',
     Mon: '📅 Monday: Post a Minecraft screenshot tip on Facebook & TikTok Rhino 3D speed model',
@@ -45,7 +46,6 @@ function dailyScheduleMessage() {
     Fri: '📅 Friday: Engagement posts on Facebook & trending TikTok',
     Sat: '📅 Saturday: Minecraft dev stream + highlight reel',
   };
-  const dateParts = getCambodiaDateParts();
   const cambodiaDateLabel = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 
   return `
@@ -146,7 +146,9 @@ export async function fetchLatestYouTubeUploads() {
     type: 'video'
   });
 
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams.toString()}`);
+  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams.toString()}`, {
+    signal: AbortSignal.timeout(8000)
+  });
   const data = await response.json();
 
   if (!response.ok) {
