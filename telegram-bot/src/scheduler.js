@@ -1,5 +1,30 @@
 import cron from 'node-cron';
 
+const CAMBODIA_TIMEZONE = 'Asia/Phnom_Penh';
+
+function getCambodiaDateParts(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: CAMBODIA_TIMEZONE,
+    weekday: 'short',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+
+  const parts = Object.fromEntries(
+    formatter
+      .formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value])
+  );
+
+  return parts;
+}
+
 function requireChannelId() {
   const channelId = process.env.TELEGRAM_CHANNEL_ID;
 
@@ -11,21 +36,25 @@ function requireChannelId() {
 }
 
 function dailyScheduleMessage() {
-  const dayOfWeek = new Date().getDay();
+  const weekday = getCambodiaDateParts().weekday;
   const scheduleMap = {
-    0: '📅 Sunday: Rest day — plan next week\'s content!',
-    1: '📅 Monday: Post a Minecraft screenshot tip on Facebook & TikTok Rhino 3D speed model',
-    2: '📅 Tuesday: Upload Minecraft Add-on video to YouTube!',
-    3: '📅 Wednesday: Post Rhino 3D tutorial on Facebook & quick TikTok tip',
-    4: '📅 Thursday: Upload Rhino 3D tutorial to YouTube!',
-    5: '📅 Friday: Engagement posts on Facebook & trending TikTok',
-    6: '📅 Saturday: Minecraft dev stream + highlight reel',
+    Sun: '📅 Sunday: Rest day — plan next week\'s content!',
+    Mon: '📅 Monday: Post a Minecraft screenshot tip on Facebook & TikTok Rhino 3D speed model',
+    Tue: '📅 Tuesday: Upload Minecraft Add-on video to YouTube!',
+    Wed: '📅 Wednesday: Post Rhino 3D tutorial on Facebook & quick TikTok tip',
+    Thu: '📅 Thursday: Upload Rhino 3D tutorial to YouTube!',
+    Fri: '📅 Friday: Engagement posts on Facebook & trending TikTok',
+    Sat: '📅 Saturday: Minecraft dev stream + highlight reel',
   };
+  const dateParts = getCambodiaDateParts();
+  const cambodiaDateLabel = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 
   return `
 🔔 **Daily Content Reminder**
 
-${scheduleMap[dayOfWeek]}
+Cambodia date: ${cambodiaDateLabel} (${weekday})
+
+${scheduleMap[weekday]}
 
 Stay consistent, stay creative! 💪
     `;
@@ -171,21 +200,21 @@ export function scheduledJobs(bot) {
     sendDailyContentReminder(bot).catch((error) => {
       console.error('Failed to send daily content reminder:', error);
     });
-  });
+  }, { timezone: CAMBODIA_TIMEZONE });
 
   // Weekly analytics reminder — every Monday at 10:00 AM
   cron.schedule('0 10 * * 1', () => {
     sendWeeklyReviewReminder(bot).catch((error) => {
       console.error('Failed to send weekly review reminder:', error);
     });
-  });
+  }, { timezone: CAMBODIA_TIMEZONE });
 
   // Monthly milestone check — 1st of every month at 10:00 AM
   cron.schedule('0 10 1 * *', () => {
     sendMonthlyMilestoneReminder(bot).catch((error) => {
       console.error('Failed to send monthly milestone reminder:', error);
     });
-  });
+  }, { timezone: CAMBODIA_TIMEZONE });
 
   // New video notification helper
   bot.newVideoNotification = (platform, title, url) => {
@@ -197,7 +226,7 @@ export function scheduledJobs(bot) {
     checkAndSendLatestYouTubeAlert(bot).catch((error) => {
       console.error('Failed to check latest YouTube uploads:', error);
     });
-  });
+  }, { timezone: CAMBODIA_TIMEZONE });
 
   console.log('⏰ Scheduled jobs initialized');
 }

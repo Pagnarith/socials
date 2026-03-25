@@ -19,10 +19,6 @@
     {
       "path": "/api/cron/monthly-milestone",
       "schedule": "0 3 1 * *"
-    },
-    {
-      "path": "/api/cron/youtube-alerts",
-      "schedule": "5 3 * * *"
     }
   ]
 }
