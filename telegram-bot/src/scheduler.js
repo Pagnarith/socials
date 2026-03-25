@@ -126,7 +126,7 @@ Don't forget to like, comment & share! 🙌
   return sendScheduledMessage(bot, message);
 }
 
-export async function checkAndSendLatestYouTubeAlert(bot) {
+export async function fetchLatestYouTubeUploads() {
   const apiKey = process.env.YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
   const lookbackMinutes = Number(process.env.YOUTUBE_ALERT_WINDOW_MINUTES || '70');
@@ -156,21 +156,44 @@ export async function checkAndSendLatestYouTubeAlert(bot) {
 
   const items = Array.isArray(data.items) ? data.items : [];
 
-  if (items.length === 0) {
+  return items
+    .filter((item) => item.id?.videoId && item.snippet?.title)
+    .sort((left, right) => new Date(left.snippet.publishedAt) - new Date(right.snippet.publishedAt));
+}
+
+export async function checkAndSendLatestYouTubeAlert(bot, options = {}) {
+  const { isAlreadyAlerted, markAlertSent } = options;
+  const uploads = await fetchLatestYouTubeUploads();
+
+  if (uploads.length === 0) {
     return { sent: false, count: 0 };
   }
 
-  const uploads = items
-    .filter((item) => item.id?.videoId && item.snippet?.title)
-    .sort((left, right) => new Date(left.snippet.publishedAt) - new Date(right.snippet.publishedAt));
+  let sentCount = 0;
 
   for (const item of uploads) {
+    const videoId = item.id.videoId;
+    if (isAlreadyAlerted && (await isAlreadyAlerted(videoId))) {
+      continue;
+    }
+
     const title = item.snippet.title;
-    const url = `https://www.youtube.com/watch?v=${item.id.videoId}`;
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
     await sendNewVideoAlert(bot, title, url, inferVideoPlatform(title));
+
+    if (markAlertSent) {
+      await markAlertSent({
+        videoId,
+        title,
+        publishedAt: item.snippet.publishedAt,
+        url
+      });
+    }
+
+    sentCount += 1;
   }
 
-  return { sent: true, count: uploads.length };
+  return { sent: sentCount > 0, count: sentCount, found: uploads.length };
 }
 
 export async function sendDailyContentReminder(bot) {
