@@ -92,7 +92,7 @@ Use /links to find all our channels!
 🔗 **Our Social Media**
 
 📺 YouTube: [Subscribe here](https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg)
-📘 Facebook: [Follow our page](https://www.facebook.com/profile.php?id=1110028448851657)
+📘 Facebook: [Follow our page](https://www.facebook.com/chakriyanet)
 📷 Instagram: [Follow us](https://www.instagram.com/iprickypagnarith/)
 📱 TikTok: [Follow us](https://www.tiktok.com/@iprickypagnarith)
 💬 Telegram: You're already here! 🎉

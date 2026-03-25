@@ -23,7 +23,7 @@ Connect with me:
 - Website: https://social.chakriya.net
 - Instagram: https://instagram.com/iprickypagnarith
 - TikTok: https://tiktok.com/@iprickypagnarith
-- Facebook: https://facebook.com/profile.php?id=1110028448851657
+- Facebook: https://www.facebook.com/chakriyanet
 
 Business inquiries: contact@chakriya.net
 

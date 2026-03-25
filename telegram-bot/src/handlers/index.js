@@ -38,7 +38,7 @@ Learn professional 3D modeling from scratch.
     ctx.replyWithMarkdown(`
 🔗 **Follow Us:**
 📺 YouTube: https://youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg
-📘 Facebook: https://facebook.com/profile.php?id=1110028448851657
+📘 Facebook: https://www.facebook.com/chakriyanet
 📱 TikTok: https://tiktok.com/@iprickypagnarith
 📷 Instagram: https://instagram.com/iprickypagnarith
     `);

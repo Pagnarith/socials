@@ -62,7 +62,7 @@ New videos every week — Subscribe & hit 🔔 to stay updated!
 
 ## Facebook
 
-**Page:** [iPricky Pagnarith](https://facebook.com/profile.php?id=1110028448851657)
+**Page:** [iPricky Pagnarith](https://www.facebook.com/chakriyanet)
 
 **Display Name:** iPricky Pagnarith
 
@@ -167,7 +167,7 @@ Use these consistently in all bios and link-in-bio pages:
 | Platform  | URL |
 |-----------|-----|
 | YouTube   | https://youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg |
-| Facebook  | https://facebook.com/profile.php?id=1110028448851657 |
+| Facebook  | https://www.facebook.com/chakriyanet |
 | Instagram | https://instagram.com/iprickypagnarith |
 | TikTok    | https://tiktok.com/@iprickypagnarith |
 | Dashboard | https://social.chakriya.net |
