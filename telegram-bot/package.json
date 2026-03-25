@@ -8,7 +8,8 @@
     "start": "node src/bot.js",
     "dev": "node --watch src/bot.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:cron-auth": "vitest run tests/cron-auth.test.js"
   },
   "dependencies": {
     "dotenv": "^16.4.0",
