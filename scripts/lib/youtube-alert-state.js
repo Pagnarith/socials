@@ -1,6 +1,14 @@
 const DEFAULT_STATE_NAME = 'YOUTUBE_ALERT_STATE';
 const MAX_TRACKED_VIDEOS = 50;
 
+async function sha256(value) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((item) => item.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 function parseRepositorySlug() {
   const repository = process.env.GITHUB_REPOSITORY;
   if (!repository || !repository.includes('/')) {
@@ -12,9 +20,9 @@ function parseRepositorySlug() {
 }
 
 function getHeaders() {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.GITHUB_TOKEN || process.env.GH_REPO_TOKEN;
   if (!token) {
-    throw new Error('Missing GITHUB_TOKEN');
+    throw new Error('Missing GITHUB_TOKEN or GH_REPO_TOKEN');
   }
 
   return {
@@ -36,9 +44,21 @@ function normalizeState(parsed) {
   const videos = Array.isArray(parsed.videos) ? parsed.videos : [];
   return {
     videos: videos
-      .filter((item) => item && typeof item.videoId === 'string')
+      .filter((item) => item && (typeof item.videoId === 'string' || typeof item.dedupeKey === 'string'))
+      .map((item) => ({
+        videoId: item.videoId || null,
+        dedupeKey: item.dedupeKey || null,
+        title: item.title || null,
+        url: item.url || null,
+        publishedAt: item.publishedAt || null,
+        alertedAt: item.alertedAt || null
+      }))
       .slice(0, MAX_TRACKED_VIDEOS)
   };
+}
+
+export async function createAlertDedupeKey(alert) {
+  return sha256(`${alert.title || ''}::${alert.publishedAt || ''}`);
 }
 
 export async function loadAlertState() {
@@ -104,20 +124,26 @@ export async function saveAlertState(state) {
   }
 }
 
-export function hasVideoBeenAlerted(state, videoId) {
-  return state.videos.some((item) => item.videoId === videoId);
+export async function hasVideoBeenAlerted(state, alert) {
+  const dedupeKey = await createAlertDedupeKey(alert);
+
+  return state.videos.some((item) => {
+    return (alert.videoId && item.videoId === alert.videoId) || item.dedupeKey === dedupeKey;
+  });
 }
 
-export function recordAlertedVideo(state, alert) {
+export async function recordAlertedVideo(state, alert) {
+  const dedupeKey = await createAlertDedupeKey(alert);
   const nextVideos = [
     {
       videoId: alert.videoId,
+      dedupeKey,
       title: alert.title,
       url: alert.url,
       publishedAt: alert.publishedAt,
       alertedAt: new Date().toISOString()
     },
-    ...state.videos.filter((item) => item.videoId !== alert.videoId)
+    ...state.videos.filter((item) => item.videoId !== alert.videoId && item.dedupeKey !== dedupeKey)
   ].slice(0, MAX_TRACKED_VIDEOS);
 
   return { videos: nextVideos };

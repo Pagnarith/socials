@@ -5,6 +5,7 @@
  *   /media          — Show media management menu
  *   /yt_desc <text> — Update YouTube channel description
  *   /yt_info        — Show current YouTube channel info
+ *   /yt_alerts      — Show recently alerted YouTube uploads
  *   /fb_about <t>   — Update Facebook Page "about"
  *   /fb_desc <text> — Update Facebook Page "description"
  *   /fb_web <url>   — Update Facebook Page website
@@ -20,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Markup } from 'telegraf';
+import { loadAlertState } from '../../../scripts/lib/youtube-alert-state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TOKEN_PATH = path.resolve(__dirname, '../../../tokens/youtube.json');
@@ -132,6 +134,7 @@ export function registerMediaCommands(bot) {
 *YouTube:*
 /yt\\_info — View channel info
 /yt\\_desc \`<text>\` — Update channel description
+/yt\_alerts — View recent alerted uploads
 
 *Facebook:*
 /fb\\_info — View page info
@@ -196,6 +199,35 @@ ${b?.description || s.description || '(empty)'}
       ctx.replyWithMarkdown('✅ YouTube description updated.');
     } catch (e) {
       ctx.reply('❌ ' + e.message);
+    }
+  });
+
+  bot.command('yt_alerts', async (ctx) => {
+    if (!adminOnly(ctx)) return;
+
+    try {
+      const state = await loadAlertState();
+      const videos = state.videos.slice(0, 5);
+
+      if (videos.length === 0) {
+        return ctx.replyWithMarkdown('📺 No YouTube alert state recorded yet.');
+      }
+
+      const body = videos
+        .map((video, index) => {
+          const title = video.title || '(untitled)';
+          const videoId = video.videoId || '(missing)';
+          const hash = video.dedupeKey ? `${video.dedupeKey.slice(0, 12)}...` : '(missing)';
+          const publishedAt = video.publishedAt || '(unknown)';
+          const alertedAt = video.alertedAt || '(unknown)';
+
+          return `${index + 1}. *${title}*\nID: \`${videoId}\`\nHash: \`${hash}\`\nPublished: ${publishedAt}\nAlerted: ${alertedAt}`;
+        })
+        .join('\n\n');
+
+      return ctx.replyWithMarkdown(`📺 **Recent YouTube Alerts**\n\n${body}`);
+    } catch (error) {
+      return ctx.reply(`❌ ${error.message}`);
     }
   });
 

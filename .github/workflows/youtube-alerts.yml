@@ -26,9 +26,12 @@ jobs:
         run: npm ci
 
       - name: Check YouTube alerts and notify Telegram
+        id: check_alerts
         env:
           GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           TELEGRAM_ADMIN_ID: ${{ secrets.TELEGRAM_ADMIN_ID }}
@@ -36,4 +39,17 @@ jobs:
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
           YOUTUBE_ALERT_WINDOW_MINUTES: '70'
           YOUTUBE_ALERT_STATE_NAME: YOUTUBE_ALERT_STATE
+          YOUTUBE_ALERT_RESULT_FILE: youtube-alert-result.json
         run: node scripts/check-youtube-alerts.js
+
+      - name: Post YouTube alert summary comment
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          YOUTUBE_ALERT_RESULT_FILE: youtube-alert-result.json
+          YOUTUBE_ALERT_SUMMARY_ISSUE_NUMBER: ${{ vars.YOUTUBE_ALERT_SUMMARY_ISSUE_NUMBER }}
+          YOUTUBE_ALERT_SUMMARY_DISCUSSION_ID: ${{ vars.YOUTUBE_ALERT_SUMMARY_DISCUSSION_ID }}
+        run: node scripts/post-youtube-alert-summary.js

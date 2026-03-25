@@ -173,21 +173,23 @@ export async function checkAndSendLatestYouTubeAlert(bot, options = {}) {
 
   for (const item of uploads) {
     const videoId = item.id.videoId;
-    if (isAlreadyAlerted && (await isAlreadyAlerted(videoId))) {
+    const pendingAlert = {
+      videoId,
+      title: item.snippet.title,
+      publishedAt: item.snippet.publishedAt,
+      url: `https://www.youtube.com/watch?v=${videoId}`
+    };
+
+    if (isAlreadyAlerted && (await isAlreadyAlerted(pendingAlert))) {
       continue;
     }
 
-    const title = item.snippet.title;
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const title = pendingAlert.title;
+    const url = pendingAlert.url;
     await sendNewVideoAlert(bot, title, url, inferVideoPlatform(title));
 
     if (markAlertSent) {
-      await markAlertSent({
-        videoId,
-        title,
-        publishedAt: item.snippet.publishedAt,
-        url
-      });
+      await markAlertSent(pendingAlert);
     }
 
     sentCount += 1;
