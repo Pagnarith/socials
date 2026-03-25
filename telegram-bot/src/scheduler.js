@@ -50,7 +50,7 @@ function dailyScheduleMessage() {
   const cambodiaDateLabel = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 
   return `
-🔔 **Daily Content Reminder**
+🔔 *Daily Content Reminder*
 
 Cambodia date: ${cambodiaDateLabel} (${weekday})
 
@@ -62,7 +62,7 @@ Stay consistent, stay creative! 💪
 
 function weeklyReviewMessage() {
   return `
-📊 **Weekly Review Time!**
+📊 *Weekly Review Time!*
 
 Check your analytics:
 📺 YouTube Studio
@@ -80,7 +80,7 @@ Keep pushing forward! 🚀
 
 function monthlyMilestoneMessage() {
   return `
-🏆 **Monthly Milestone Check**
+🏆 *Monthly Milestone Check*
 
 Review your progress:
 📺 YouTube: Subscribers? Watch hours?
@@ -114,7 +114,7 @@ function inferVideoPlatform(title = '') {
 export async function sendNewVideoAlert(bot, title, url, platform = 'youtube') {
   const emoji = platform === 'minecraft' ? '🎮' : platform === 'rhino' ? '🖥️' : '📺';
   const message = `
-🔔 **New Video Alert!**
+🔔 *New Video Alert!*
 
 ${emoji} *${title}*
 

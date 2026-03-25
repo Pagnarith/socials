@@ -6,7 +6,6 @@
  *   /yt_desc <text> — Update YouTube channel description
  *   /yt_info        — Show current YouTube channel info
  *   /yt_alerts      — Show recently alerted YouTube uploads
- *   /yt_alert_reset — Clear persisted YouTube alert state
  *   /fb_about <t>   — Update Facebook Page "about"
  *   /fb_desc <text> — Update Facebook Page "description"
  *   /fb_web <url>   — Update Facebook Page website
@@ -22,7 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Markup } from 'telegraf';
-import { clearAlertState, loadAlertState } from '../../../scripts/lib/youtube-alert-state.js';
+import { loadAlertState } from '../../../scripts/lib/youtube-alert-state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TOKEN_PATH = path.resolve(__dirname, '../../../tokens/youtube.json');
@@ -129,32 +128,31 @@ export function registerMediaCommands(bot) {
   // ── /media — overview menu ────────────────────────────────
   bot.command('media', (ctx) => {
     if (!adminOnly(ctx)) return;
-    ctx.replyWithMarkdown(`
-📡 **Media Management**
+    ctx.reply(
+`📡 Media Management
 
-*YouTube:*
-/yt\\_info — View channel info
-/yt\\_desc \`<text>\` — Update channel description
-/yt\_alerts — View recent alerted uploads
-/yt\_alert\_reset — Clear alert state
+YouTube:
+/yt_info — View channel info
+/yt_desc <text> — Update channel description
+/yt_alerts — View recent alerted uploads
 
-*Facebook:*
-/fb\\_info — View page info
-/fb\\_about \`<text>\` — Update page about
-/fb\\_desc \`<text>\` — Update page description
-/fb\\_web \`<url>\` — Update page website
+Facebook:
+/fb_info — View page info
+/fb_about <text> — Update page about
+/fb_desc <text> — Update page description
+/fb_web <url> — Update page website
 
-*Telegram:*
-/tg\\_info — View bot info
-/tg\\_desc \`<text>\` — Update bot description
-/tg\\_short \`<text>\` — Update bot short description
+Telegram:
+/tg_info — View bot info
+/tg_desc <text> — Update bot description
+/tg_short <text> — Update bot short description
 
-*Instagram (manual):*
-/ig\\_info — Show bio to copy/paste
+Instagram (manual):
+/ig_info — Show bio to copy/paste
 
-*TikTok (manual):*
-/tk\\_info — Show bio to copy/paste
-    `);
+TikTok (manual):
+/tk_info — Show bio to copy/paste`
+    );
   });
 
   // ── YouTube ───────────────────────────────────────────────
@@ -169,7 +167,7 @@ export function registerMediaCommands(bot) {
       const st = ch.statistics;
       const b = ch.brandingSettings?.channel;
       ctx.replyWithMarkdown(`
-📺 **YouTube Channel**
+📺 *YouTube Channel*
 *Title:* ${s.title}
 *Subscribers:* ${st.subscriberCount}
 *Videos:* ${st.videoCount}
@@ -222,24 +220,12 @@ ${b?.description || s.description || '(empty)'}
           const hash = video.dedupeKey ? `${video.dedupeKey.slice(0, 12)}...` : '(missing)';
           const publishedAt = video.publishedAt || '(unknown)';
           const alertedAt = video.alertedAt || '(unknown)';
-          const urlLine = video.url ? `URL: [Open video](${video.url})` : 'URL: (missing)';
 
-          return `${index + 1}. *${title}*\nID: \`${videoId}\`\nHash: \`${hash}\`\nPublished: ${publishedAt}\nAlerted: ${alertedAt}\n${urlLine}`;
+          return `${index + 1}. *${title}*\nID: \`${videoId}\`\nHash: \`${hash}\`\nPublished: ${publishedAt}\nAlerted: ${alertedAt}`;
         })
         .join('\n\n');
 
-      return ctx.replyWithMarkdown(`📺 **Recent YouTube Alerts**\n\n${body}`);
-    } catch (error) {
-      return ctx.reply(`❌ ${error.message}`);
-    }
-  });
-
-  bot.command('yt_alert_reset', async (ctx) => {
-    if (!adminOnly(ctx)) return;
-
-    try {
-      await clearAlertState();
-      return ctx.replyWithMarkdown('✅ YouTube alert state cleared. Future workflow runs will rebuild the recent alert list.');
+      return ctx.replyWithMarkdown(`📺 *Recent YouTube Alerts*\n\n${body}`);
     } catch (error) {
       return ctx.reply(`❌ ${error.message}`);
     }
@@ -251,7 +237,7 @@ ${b?.description || s.description || '(empty)'}
     try {
       const info = await fbInfo();
       ctx.replyWithMarkdown(`
-📘 **Facebook Page**
+📘 *Facebook Page*
 *Name:* ${info.name || '?'}
 *Category:* ${info.category || '?'}
 *Fans:* ${info.fan_count ?? '?'}
@@ -311,7 +297,7 @@ ${info.description || '(empty)'}
       const short = await tgApiCall('getMyShortDescription');
       const d = me.result;
       ctx.replyWithMarkdown(`
-💬 **Telegram Bot**
+💬 *Telegram Bot*
 *Username:* @${d.username}
 *Name:* ${d.first_name}
 *Can join groups:* ${d.can_join_groups}
@@ -353,7 +339,7 @@ ${short.result?.short_description || '(empty)'}
   bot.command('ig_info', (ctx) => {
     if (!adminOnly(ctx)) return;
     ctx.replyWithMarkdown(`
-📷 **Instagram** — *Manual update required*
+📷 *Instagram* — *Manual update required*
 
 Open Instagram → Edit Profile → Bio, then paste:
 
@@ -369,7 +355,7 @@ ${IG_BIO}
   bot.command('tk_info', (ctx) => {
     if (!adminOnly(ctx)) return;
     ctx.replyWithMarkdown(`
-📱 **TikTok** — *Manual update required*
+📱 *TikTok* — *Manual update required*
 
 Open TikTok → Edit Profile → Bio, then paste:
 

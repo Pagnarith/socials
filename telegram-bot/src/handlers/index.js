@@ -3,7 +3,7 @@ export function registerHandlers(bot) {
   bot.action('menu_minecraft', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🎮 **Minecraft Add-ons**
+🎮 *Minecraft Add-ons*
 
 We build custom Bedrock Edition Add-ons!
 
@@ -18,7 +18,7 @@ What would you like to know?
   bot.action('menu_rhino3d', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🖥️ **Rhino 3D Tutorials**
+🖥️ *Rhino 3D Tutorials*
 
 Learn professional 3D modeling from scratch.
 
@@ -36,7 +36,7 @@ Learn professional 3D modeling from scratch.
   bot.action('menu_links', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🔗 **Follow Us:**
+🔗 *Follow Us:*
 📺 YouTube: https://youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg
 📘 Facebook: https://www.facebook.com/chakriyanet
 📱 TikTok: https://tiktok.com/@iprickypagnarith

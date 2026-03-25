@@ -4,7 +4,7 @@ export function registerCommands(bot) {
   // /start — Welcome message
   bot.start((ctx) => {
     const welcomeMessage = `
-🎮 Welcome to **iPricky Pagnarith Bot**!
+🎮 Welcome to *iPricky Pagnarith Bot*!
 
 I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
 
@@ -33,7 +33,7 @@ Stay creative! 🎨
   // /latest — Latest video info
   bot.command('latest', (ctx) => {
     ctx.replyWithMarkdown(`
-📺 **Latest Videos**
+📺 *Latest Videos*
 
 🎮 *Minecraft:* Coming soon — stay tuned!
 🖥️ *Rhino 3D:* Coming soon — stay tuned!
@@ -45,7 +45,7 @@ Subscribe with /subscribe to get notified when new videos drop!
   // /minecraft — Minecraft Add-on info
   bot.command('minecraft', (ctx) => {
     ctx.replyWithMarkdown(`
-🎮 **Minecraft Add-ons**
+🎮 *Minecraft Add-ons*
 
 We create custom Add-ons for Minecraft Bedrock Edition!
 
@@ -66,7 +66,7 @@ Use /links to find all our channels!
   // /rhino3d — Rhino 3D tutorial info
   bot.command('rhino3d', (ctx) => {
     ctx.replyWithMarkdown(`
-🖥️ **Rhino 3D Tutorials**
+🖥️ *Rhino 3D Tutorials*
 
 Learn 3D modeling in Rhinoceros from scratch!
 
@@ -89,7 +89,7 @@ Use /links to find all our channels!
   // /links — All social media links
   bot.command('links', (ctx) => {
     ctx.replyWithMarkdown(`
-🔗 **Our Social Media**
+🔗 *Our Social Media*
 
 📺 YouTube: [Subscribe here](https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg)
 📘 Facebook: [Follow our page](https://www.facebook.com/chakriyanet)
@@ -107,7 +107,7 @@ Use /links to find all our channels!
     const userName = ctx.from.first_name;
     // In production, save to Dataverse
     ctx.replyWithMarkdown(`
-✅ **Subscribed!** 
+✅ *Subscribed!* 
 
 Hey ${userName}, you'll receive notifications for:
 🔔 New YouTube video uploads
@@ -126,7 +126,7 @@ To unsubscribe, use /unsubscribe
   // /help — All available commands
   bot.command('help', (ctx) => {
     ctx.replyWithMarkdown(`
-📖 **Available Commands**
+📖 *Available Commands*
 
 🏠 /start — Welcome message
 📋 /menu — Interactive menu
