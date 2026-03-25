@@ -1,0 +1,24 @@
+{
+  "functions": {
+    "api/telegram-webhook.js": {
+      "maxDuration": 10
+    },
+    "api/cron/*.js": {
+      "maxDuration": 10
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/daily-content",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-review",
+      "schedule": "0 10 * * 1"
+    },
+    {
+      "path": "/api/cron/monthly-milestone",
+      "schedule": "0 10 1 * *"
+    }
+  ]
+}

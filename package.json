@@ -17,7 +17,13 @@
     "dev:bot": "npm run start --workspace=telegram-bot",
     "build": "npm run build --workspace=dashboard",
     "lint": "npm run lint --workspace=dashboard",
-    "setup": "npm install && cp -n .env.example .env || true"
+    "setup": "npm install && cp -n .env.example .env || true",
+    "update:youtube": "node scripts/update-youtube-channel.js",
+    "set:telegram-webhook": "node scripts/set-telegram-webhook.js"
+  },
+  "dependencies": {
+    "googleapis": "^118.0.0",
+    "dotenv": "^16.0.0"
   },
   "keywords": [
     "minecraft",

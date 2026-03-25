@@ -14,6 +14,7 @@ I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
 🔹 /rhino3d — Rhino 3D tutorials
 🔹 /links — All social media links
 🔹 /subscribe — Get notified for new content
+🔹 /media — 📡 Manage all social media (admin)
 🔹 /help — All commands
 
 Visit: https://social.chakriya.net
@@ -135,6 +136,7 @@ To unsubscribe, use /unsubscribe
 🔗 /links — Social media links
 🔔 /subscribe — Get notifications
 🔕 /unsubscribe — Stop notifications
+📡 /media — Manage social media (admin)
 ❓ /help — This help message
     `);
   });

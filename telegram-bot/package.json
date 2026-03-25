@@ -11,6 +11,7 @@
   "dependencies": {
     "telegraf": "^4.16.0",
     "node-cron": "^3.0.3",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.4.0",
+    "googleapis": "^118.0.0"
   }
 }
