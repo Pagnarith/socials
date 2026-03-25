@@ -4,7 +4,7 @@ export function registerCommands(bot) {
   // /start — Welcome message
   bot.start((ctx) => {
     const welcomeMessage = `
-🎮 Welcome to **CraftDesign Studio Bot**!
+🎮 Welcome to **iPricky Pagnarith Bot**!
 
 I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
 
@@ -15,6 +15,9 @@ I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
 🔹 /links — All social media links
 🔹 /subscribe — Get notified for new content
 🔹 /help — All commands
+
+Visit: https://social.chakriya.net
+Handle: @iprickypagnarith
 
 Stay creative! 🎨
     `;
