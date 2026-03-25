@@ -56,7 +56,9 @@ Learn professional 3D modeling from scratch.
 
   // Handle text messages — Auto-reply for common keywords
   bot.on('text', (ctx) => {
-    const text = ctx.message.text.toLowerCase();
+    const raw = ctx.message.text;
+    if (!raw || raw.startsWith('/')) return; // commands handled by their own middleware
+    const text = raw.toLowerCase();
 
     if (text.includes('minecraft') || text.includes('add-on') || text.includes('addon')) {
       ctx.reply('🎮 Interested in Minecraft? Use /minecraft for all the details!');

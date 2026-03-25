@@ -1,11 +1,6 @@
-import dotenv from 'dotenv';
-import { createBot } from '../../telegram-bot/src/createBot.js';
-import { sendDailyContentReminder } from '../../telegram-bot/src/scheduler.js';
 import { authorizeCronRequest } from '../_lib/cron-auth.js';
-
-dotenv.config();
-
-const bot = createBot();
+import { sendChannelMessage } from '../_lib/telegram.js';
+import { getDailyContentMessage } from '../../telegram-bot/src/scheduler.js';
 
 export default async function handler(req, res) {
   if (!authorizeCronRequest(req, res)) {
@@ -13,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await sendDailyContentReminder(bot);
+    await sendChannelMessage(getDailyContentMessage());
     return res.status(200).json({ ok: true, job: 'daily-content' });
   } catch (error) {
     console.error('daily-content cron failed:', error);

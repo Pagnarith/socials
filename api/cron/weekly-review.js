@@ -1,11 +1,6 @@
-import dotenv from 'dotenv';
-import { createBot } from '../../telegram-bot/src/createBot.js';
-import { sendWeeklyReviewReminder } from '../../telegram-bot/src/scheduler.js';
 import { authorizeCronRequest } from '../_lib/cron-auth.js';
-
-dotenv.config();
-
-const bot = createBot();
+import { sendChannelMessage } from '../_lib/telegram.js';
+import { getWeeklyReviewMessage } from '../../telegram-bot/src/scheduler.js';
 
 export default async function handler(req, res) {
   if (!authorizeCronRequest(req, res)) {
@@ -13,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await sendWeeklyReviewReminder(bot);
+    await sendChannelMessage(getWeeklyReviewMessage());
     return res.status(200).json({ ok: true, job: 'weekly-review' });
   } catch (error) {
     console.error('weekly-review cron failed:', error);

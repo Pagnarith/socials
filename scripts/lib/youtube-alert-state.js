@@ -124,10 +124,6 @@ export async function saveAlertState(state) {
   }
 }
 
-export async function clearAlertState() {
-  await saveAlertState({ videos: [] });
-}
-
 export async function hasVideoBeenAlerted(state, alert) {
   const dedupeKey = await createAlertDedupeKey(alert);
 

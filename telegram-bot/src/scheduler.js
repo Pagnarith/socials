@@ -1,5 +1,4 @@
-import cron from 'node-cron';
-
+// node-cron loaded lazily inside scheduledJobs() to avoid penalising serverless cold starts
 const CAMBODIA_TIMEZONE = 'Asia/Phnom_Penh';
 
 function getCambodiaDateParts(date = new Date()) {
@@ -210,6 +209,11 @@ export async function sendMonthlyMilestoneReminder(bot) {
   return sendScheduledMessage(bot, monthlyMilestoneMessage());
 }
 
+// Lightweight message generators for cron endpoints (no bot/telegraf needed)
+export function getDailyContentMessage() { return dailyScheduleMessage(); }
+export function getWeeklyReviewMessage() { return weeklyReviewMessage(); }
+export function getMonthlyMilestoneMessage() { return monthlyMilestoneMessage(); }
+
 export function scheduledJobs(bot) {
   const channelId = process.env.TELEGRAM_CHANNEL_ID;
 
@@ -220,38 +224,38 @@ export function scheduledJobs(bot) {
     return;
   }
 
-  // Daily content reminder — every day at 9:00 AM
-  cron.schedule('0 9 * * *', () => {
-    sendDailyContentReminder(bot).catch((error) => {
-      console.error('Failed to send daily content reminder:', error);
-    });
-  }, { timezone: CAMBODIA_TIMEZONE });
+  // Lazy-load node-cron — only needed in the long-running bot process
+  import('node-cron').then(({ default: cron }) => {
+    // Daily content reminder — every day at 9:00 AM
+    cron.schedule('0 9 * * *', () => {
+      sendDailyContentReminder(bot).catch((error) => {
+        console.error('Failed to send daily content reminder:', error);
+      });
+    }, { timezone: CAMBODIA_TIMEZONE });
 
-  // Weekly analytics reminder — every Monday at 10:00 AM
-  cron.schedule('0 10 * * 1', () => {
-    sendWeeklyReviewReminder(bot).catch((error) => {
-      console.error('Failed to send weekly review reminder:', error);
-    });
-  }, { timezone: CAMBODIA_TIMEZONE });
+    // Weekly analytics reminder — every Monday at 10:00 AM
+    cron.schedule('0 10 * * 1', () => {
+      sendWeeklyReviewReminder(bot).catch((error) => {
+        console.error('Failed to send weekly review reminder:', error);
+      });
+    }, { timezone: CAMBODIA_TIMEZONE });
 
-  // Monthly milestone check — 1st of every month at 10:00 AM
-  cron.schedule('0 10 1 * *', () => {
-    sendMonthlyMilestoneReminder(bot).catch((error) => {
-      console.error('Failed to send monthly milestone reminder:', error);
-    });
-  }, { timezone: CAMBODIA_TIMEZONE });
+    // Monthly milestone check — 1st of every month at 10:00 AM
+    cron.schedule('0 10 1 * *', () => {
+      sendMonthlyMilestoneReminder(bot).catch((error) => {
+        console.error('Failed to send monthly milestone reminder:', error);
+      });
+    }, { timezone: CAMBODIA_TIMEZONE });
 
-  // New video notification helper
-  bot.newVideoNotification = (platform, title, url) => {
-    return sendNewVideoAlert(bot, title, url, platform);
-  };
+    // Hourly YouTube upload check
+    cron.schedule('5 * * * *', () => {
+      checkAndSendLatestYouTubeAlert(bot).catch((error) => {
+        console.error('Failed to check latest YouTube uploads:', error);
+      });
+    }, { timezone: CAMBODIA_TIMEZONE });
 
-  // Hourly YouTube upload check
-  cron.schedule('5 * * * *', () => {
-    checkAndSendLatestYouTubeAlert(bot).catch((error) => {
-      console.error('Failed to check latest YouTube uploads:', error);
-    });
-  }, { timezone: CAMBODIA_TIMEZONE });
-
-  console.log('⏰ Scheduled jobs initialized');
+    console.log('⏰ Scheduled jobs initialized');
+  }).catch((err) => {
+    console.error('Failed to load node-cron:', err);
+  });
 }

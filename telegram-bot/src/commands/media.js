@@ -20,8 +20,6 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Markup } from 'telegraf';
-import { loadAlertState } from '../../../scripts/lib/youtube-alert-state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TOKEN_PATH = path.resolve(__dirname, '../../../tokens/youtube.json');
@@ -70,14 +68,22 @@ async function getYouTubeClient() {
 }
 
 // ─── Facebook helpers ───────────────────────────────────────
+let _fbTokenCache = null;
+let _fbTokenExpiry = 0;
+
 async function fbPageToken() {
+  if (_fbTokenCache && Date.now() < _fbTokenExpiry) return _fbTokenCache;
   const pageId = process.env.FACEBOOK_PAGE_ID;
   const sysToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
   if (!pageId || !sysToken) throw new Error('Missing FACEBOOK_PAGE_ID or FACEBOOK_PAGE_ACCESS_TOKEN');
   const url = `https://graph.facebook.com/v19.0/${pageId}?fields=access_token&access_token=${sysToken}`;
   const res = await fetch(url);
   const data = await res.json();
-  if (data?.access_token) return data.access_token;
+  if (data?.access_token) {
+    _fbTokenCache = data.access_token;
+    _fbTokenExpiry = Date.now() + 5 * 60 * 1000; // cache 5 min
+    return _fbTokenCache;
+  }
   throw new Error('Failed to get page token: ' + JSON.stringify(data));
 }
 
@@ -206,6 +212,7 @@ ${b?.description || s.description || '(empty)'}
     if (!adminOnly(ctx)) return;
 
     try {
+      const { loadAlertState } = await import('../../../scripts/lib/youtube-alert-state.js');
       const state = await loadAlertState();
       const videos = state.videos.slice(0, 5);
 
@@ -292,9 +299,11 @@ ${info.description || '(empty)'}
   bot.command('tg_info', async (ctx) => {
     if (!adminOnly(ctx)) return;
     try {
-      const me = await tgApiCall('getMe');
-      const desc = await tgApiCall('getMyDescription');
-      const short = await tgApiCall('getMyShortDescription');
+      const [me, desc, short] = await Promise.all([
+        tgApiCall('getMe'),
+        tgApiCall('getMyDescription'),
+        tgApiCall('getMyShortDescription')
+      ]);
       const d = me.result;
       ctx.replyWithMarkdown(`
 💬 *Telegram Bot*

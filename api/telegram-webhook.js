@@ -1,7 +1,4 @@
-import dotenv from 'dotenv';
 import { createBot } from '../telegram-bot/src/createBot.js';
-
-dotenv.config();
 
 const bot = createBot();
 const callback = bot.webhookCallback('/api/telegram-webhook', {
