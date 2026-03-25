@@ -1,0 +1,30 @@
+{
+  "name": "socials-digital-financial-plan",
+  "version": "1.0.0",
+  "description": "Multi-platform content management hub for Minecraft & Rhino 3D creators",
+  "private": true,
+  "workspaces": [
+    "dashboard",
+    "telegram-bot",
+    "dataverse"
+  ],
+  "scripts": {
+    "dev:dashboard": "npm run dev --workspace=dashboard",
+    "dev:bot": "npm run start --workspace=telegram-bot",
+    "build": "npm run build --workspace=dashboard",
+    "lint": "npm run lint --workspace=dashboard",
+    "setup": "npm install && cp -n .env.example .env || true"
+  },
+  "keywords": [
+    "minecraft",
+    "rhino3d",
+    "youtube",
+    "facebook",
+    "tiktok",
+    "telegram",
+    "dataverse",
+    "content-management"
+  ],
+  "author": "imphanpagnarith",
+  "license": "MIT"
+}

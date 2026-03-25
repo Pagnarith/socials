@@ -1,0 +1,16 @@
+{
+  "name": "socials-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for automated messaging and subscriber engagement",
+  "main": "src/bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "node --watch src/bot.js"
+  },
+  "dependencies": {
+    "telegraf": "^4.16.0",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.0"
+  }
+}
