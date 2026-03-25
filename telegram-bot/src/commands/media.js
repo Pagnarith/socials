@@ -6,6 +6,7 @@
  *   /yt_desc <text> — Update YouTube channel description
  *   /yt_info        — Show current YouTube channel info
  *   /yt_alerts      — Show recently alerted YouTube uploads
+ *   /yt_alert_reset — Clear persisted YouTube alert state
  *   /fb_about <t>   — Update Facebook Page "about"
  *   /fb_desc <text> — Update Facebook Page "description"
  *   /fb_web <url>   — Update Facebook Page website
@@ -21,7 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Markup } from 'telegraf';
-import { loadAlertState } from '../../../scripts/lib/youtube-alert-state.js';
+import { clearAlertState, loadAlertState } from '../../../scripts/lib/youtube-alert-state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TOKEN_PATH = path.resolve(__dirname, '../../../tokens/youtube.json');
@@ -135,6 +136,7 @@ export function registerMediaCommands(bot) {
 /yt\\_info — View channel info
 /yt\\_desc \`<text>\` — Update channel description
 /yt\_alerts — View recent alerted uploads
+/yt\_alert\_reset — Clear alert state
 
 *Facebook:*
 /fb\\_info — View page info
@@ -220,12 +222,24 @@ ${b?.description || s.description || '(empty)'}
           const hash = video.dedupeKey ? `${video.dedupeKey.slice(0, 12)}...` : '(missing)';
           const publishedAt = video.publishedAt || '(unknown)';
           const alertedAt = video.alertedAt || '(unknown)';
+          const urlLine = video.url ? `URL: [Open video](${video.url})` : 'URL: (missing)';
 
-          return `${index + 1}. *${title}*\nID: \`${videoId}\`\nHash: \`${hash}\`\nPublished: ${publishedAt}\nAlerted: ${alertedAt}`;
+          return `${index + 1}. *${title}*\nID: \`${videoId}\`\nHash: \`${hash}\`\nPublished: ${publishedAt}\nAlerted: ${alertedAt}\n${urlLine}`;
         })
         .join('\n\n');
 
       return ctx.replyWithMarkdown(`📺 **Recent YouTube Alerts**\n\n${body}`);
+    } catch (error) {
+      return ctx.reply(`❌ ${error.message}`);
+    }
+  });
+
+  bot.command('yt_alert_reset', async (ctx) => {
+    if (!adminOnly(ctx)) return;
+
+    try {
+      await clearAlertState();
+      return ctx.replyWithMarkdown('✅ YouTube alert state cleared. Future workflow runs will rebuild the recent alert list.');
     } catch (error) {
       return ctx.reply(`❌ ${error.message}`);
     }
