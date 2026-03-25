@@ -54,7 +54,7 @@ Coming soon — currently in development!
 
 Use /links to find all our channels!
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🎬 YouTube Channel', 'https://youtube.com/@yourchannel')],
+      [Markup.button.url('🎬 YouTube Channel', 'https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg')],
       [Markup.button.callback('🔔 Notify Me on Release', 'notify_minecraft')],
     ]));
   });
@@ -77,8 +77,8 @@ Learn 3D modeling in Rhinoceros from scratch!
 
 Use /links to find all our channels!
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🎬 YouTube Tutorials', 'https://youtube.com/@yourchannel')],
-      [Markup.button.url('📱 TikTok Tips', 'https://tiktok.com/@youraccount')],
+      [Markup.button.url('🎬 YouTube Tutorials', 'https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg')],
+      [Markup.button.url('📱 TikTok Tips', 'https://www.tiktok.com/@iprickypagnarith')],
     ]));
   });
 
@@ -87,8 +87,10 @@ Use /links to find all our channels!
     ctx.replyWithMarkdown(`
 🔗 **Our Social Media**
 
-📺 YouTube: [Subscribe here](https://youtube.com/@yourchannel)
-📘 Facebook: [Follow our page](https://facebook.com/yourpage)📷 Instagram: [Follow us](https://instagram.com/youraccount)📱 TikTok: [Follow us](https://tiktok.com/@youraccount)
+📺 YouTube: [Subscribe here](https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg)
+📘 Facebook: [Follow our page](https://www.facebook.com/profile.php?id=1110028448851657)
+📷 Instagram: [Follow us](https://www.instagram.com/iprickypagnarith/)
+📱 TikTok: [Follow us](https://www.tiktok.com/@iprickypagnarith)
 💬 Telegram: You're already here! 🎉
 
 🛒 Minecraft Marketplace: Coming soon!

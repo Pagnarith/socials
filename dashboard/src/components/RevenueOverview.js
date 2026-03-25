@@ -12,21 +12,21 @@ export function RevenueOverview() {
   const totalTarget = revenueStreams.reduce((sum, r) => sum + r.target, 0);
 
   return (
-    <div className="bg-white rounded-xl border p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-6">
       {/* Total Revenue */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
         <div>
-          <p className="text-sm text-gray-500">Total Monthly Revenue</p>
-          <p className="text-3xl font-bold text-gray-900">${totalCurrent.toFixed(2)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total Monthly Revenue</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">${totalCurrent.toFixed(2)}</p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500">Monthly Target</p>
-          <p className="text-xl font-semibold text-green-600">${totalTarget.toFixed(2)}</p>
+        <div className="sm:text-right">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Target</p>
+          <p className="text-xl font-semibold text-green-600 dark:text-green-400">${totalTarget.toFixed(2)}</p>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-6">
         <div
           className="bg-green-500 h-3 rounded-full transition-all"
           style={{ width: `${Math.min((totalCurrent / totalTarget) * 100, 100)}%` }}
@@ -39,11 +39,11 @@ export function RevenueOverview() {
           <div key={i} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-gray-600">{stream.platform} — {stream.source}</span>
+              <span className="text-gray-600 dark:text-gray-400">{stream.platform} — {stream.source}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-medium">${stream.current}</span>
-              <span className="text-gray-400">/ ${stream.target}</span>
+              <span className="font-medium dark:text-gray-200">${stream.current}</span>
+              <span className="text-gray-400 dark:text-gray-500">/ ${stream.target}</span>
             </div>
           </div>
         ))}

@@ -7,7 +7,7 @@ const milestones = [
       { label: '4,000 watch hours', current: 0, target: 4000, unit: 'hrs' },
     ],
     reward: 'YouTube Partner Program — Ad Revenue Enabled',
-    color: 'border-red-300',
+    color: 'border-red-300 dark:border-red-700',
   },
   {
     platform: 'Facebook',
@@ -17,7 +17,7 @@ const milestones = [
       { label: '600,000 min viewed (60 days)', current: 0, target: 600000, unit: 'min' },
     ],
     reward: 'Facebook In-Stream Ads — Monetization Enabled',
-    color: 'border-blue-300',
+    color: 'border-blue-300 dark:border-blue-700',
   },
   {
     platform: 'Instagram',
@@ -27,7 +27,7 @@ const milestones = [
       { label: 'Professional account setup', current: 0, target: 1, unit: 'status' },
     ],
     reward: 'Instagram Reels Bonus & Branded Content',
-    color: 'border-pink-300',
+    color: 'border-pink-300 dark:border-pink-700',
   },
   {
     platform: 'TikTok',
@@ -37,7 +37,7 @@ const milestones = [
       { label: '100,000 views (30 days)', current: 0, target: 100000, unit: 'views' },
     ],
     reward: 'TikTok Creativity Program — Creator Revenue',
-    color: 'border-gray-300',
+    color: 'border-gray-300 dark:border-gray-600',
   },
   {
     platform: 'Minecraft Marketplace',
@@ -47,7 +47,7 @@ const milestones = [
       { label: 'Microsoft Partner enrollment', current: 0, target: 1, unit: 'status' },
     ],
     reward: 'Sell Add-ons on Microsoft Minecraft Store',
-    color: 'border-green-300',
+    color: 'border-green-300 dark:border-green-700',
   },
 ];
 
@@ -60,17 +60,17 @@ export function MilestoneTracker() {
         }, 0) / milestone.requirements.length;
 
         return (
-          <div key={milestone.platform} className={`bg-white rounded-xl border-2 ${milestone.color} p-5`}>
+          <div key={milestone.platform} className={`bg-white dark:bg-gray-800 rounded-xl border-2 ${milestone.color} p-5`}>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">{milestone.icon}</span>
-              <h3 className="font-semibold text-gray-800">{milestone.platform}</h3>
-              <span className="ml-auto text-sm font-medium text-gray-500">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-200">{milestone.platform}</h3>
+              <span className="ml-auto text-sm font-medium text-gray-500 dark:text-gray-400">
                 {overallProgress.toFixed(0)}%
               </span>
             </div>
 
             {/* Overall progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
               <div
                 className="bg-green-500 h-2 rounded-full transition-all"
                 style={{ width: `${overallProgress}%` }}
@@ -83,11 +83,11 @@ export function MilestoneTracker() {
                 const progress = Math.min((req.current / req.target) * 100, 100);
                 return (
                   <div key={i}>
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                       <span>{req.label}</span>
                       <span>{req.current.toLocaleString()} / {req.target.toLocaleString()}</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                       <div
                         className="bg-blue-400 h-1.5 rounded-full"
                         style={{ width: `${progress}%` }}
@@ -99,8 +99,8 @@ export function MilestoneTracker() {
             </div>
 
             {/* Reward */}
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-500">
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 🏆 <span className="font-medium">{milestone.reward}</span>
               </p>
             </div>

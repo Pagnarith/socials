@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Multi-platform content management hub for Minecraft & Rhino 3D creators",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "workspaces": [
     "dashboard",
     "telegram-bot",

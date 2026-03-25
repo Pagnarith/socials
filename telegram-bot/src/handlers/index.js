@@ -37,9 +37,10 @@ Learn professional 3D modeling from scratch.
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
 🔗 **Follow Us:**
-📺 YouTube: youtube.com/@yourchannel
-📘 Facebook: facebook.com/yourpage
-📱 TikTok: tiktok.com/@youraccount
+📺 YouTube: https://youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg
+📘 Facebook: https://facebook.com/profile.php?id=1110028448851657
+📱 TikTok: https://tiktok.com/@iprickypagnarith
+📷 Instagram: https://instagram.com/iprickypagnarith
     `);
   });
 

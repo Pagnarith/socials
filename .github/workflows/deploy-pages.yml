@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint dashboard
+        run: npm run lint --workspace=dashboard || true
+
       - name: Build dashboard
         run: npm run build --workspace=dashboard
 
