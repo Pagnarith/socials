@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440">
+  <!--
+    YouTube Channel Art / Banner
+    Full size: 2560 x 1440 (uploaded size)
+    Safe area for all devices: center 1546 x 423
+    Desktop minimum: 2048 x 1152
+    TV display: full 2560 x 1440
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="40%" style="stop-color:#16213e"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e94560"/>
+      <stop offset="100%" style="stop-color:#ff6b6b"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00b894"/>
+      <stop offset="100%" style="stop-color:#55efc4"/>
+    </linearGradient>
+    <linearGradient id="greenH" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00b894"/>
+      <stop offset="100%" style="stop-color:#55efc4"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Safe area guide (invisible, for reference) -->
+    <!-- Safe area: x=507 y=508 w=1546 h=423 -->
+  </defs>
+
+  <!-- Background -->
+  <rect width="2560" height="1440" fill="url(#bg)"/>
+
+  <!-- Minecraft pixel grid -->
+  <g opacity="0.04">
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <rect width="48" height="48" fill="none" stroke="#fff" stroke-width="0.5"/>
+    </pattern>
+    <rect width="2560" height="1440" fill="url(#grid)"/>
+  </g>
+
+  <!-- Scattered Minecraft blocks (TV/desktop outer area) -->
+  <g opacity="0.12">
+    <!-- Top-left cluster -->
+    <rect x="80" y="80" width="48" height="48" rx="5" fill="#55efc4"/>
+    <rect x="150" y="120" width="36" height="36" rx="4" fill="#e94560"/>
+    <rect x="60" y="170" width="28" height="28" rx="3" fill="#e94560" opacity="0.6"/>
+    <rect x="200" y="60" width="32" height="32" rx="4" fill="#55efc4" opacity="0.5"/>
+
+    <!-- Top-right cluster -->
+    <rect x="2400" y="100" width="44" height="44" rx="5" fill="#55efc4"/>
+    <rect x="2320" y="150" width="36" height="36" rx="4" fill="#e94560"/>
+    <rect x="2440" y="180" width="28" height="28" rx="3" fill="#e94560" opacity="0.6"/>
+    <rect x="2280" y="80" width="32" height="32" rx="4" fill="#55efc4" opacity="0.5"/>
+
+    <!-- Bottom-left cluster -->
+    <rect x="100" y="1280" width="44" height="44" rx="5" fill="#e94560"/>
+    <rect x="170" y="1320" width="32" height="32" rx="4" fill="#55efc4"/>
+    <rect x="60" y="1340" width="28" height="28" rx="3" fill="#55efc4" opacity="0.6"/>
+
+    <!-- Bottom-right cluster -->
+    <rect x="2380" y="1260" width="48" height="48" rx="5" fill="#e94560"/>
+    <rect x="2310" y="1300" width="36" height="36" rx="4" fill="#55efc4"/>
+    <rect x="2420" y="1330" width="28" height="28" rx="3" fill="#55efc4" opacity="0.6"/>
+
+    <!-- Mid scattered blocks -->
+    <rect x="300" y="400" width="24" height="24" rx="3" fill="#55efc4" opacity="0.4"/>
+    <rect x="2200" y="450" width="24" height="24" rx="3" fill="#e94560" opacity="0.4"/>
+    <rect x="350" y="1000" width="24" height="24" rx="3" fill="#e94560" opacity="0.4"/>
+    <rect x="2180" y="980" width="24" height="24" rx="3" fill="#55efc4" opacity="0.4"/>
+  </g>
+
+  <!-- Ambient glow circles -->
+  <circle cx="500" cy="720" r="300" fill="#e94560" opacity="0.03"/>
+  <circle cx="2060" cy="720" r="300" fill="#55efc4" opacity="0.03"/>
+  <circle cx="1280" cy="720" r="400" fill="#0f3460" opacity="0.08"/>
+
+  <!-- ========== SAFE AREA CONTENT (center 1546 x 423) ========== -->
+  <!-- Safe area: x=507, y=508, w=1546, h=423 -->
+
+  <!-- Left side: Minecraft Pickaxe -->
+  <g transform="translate(620, 580)" filter="url(#glow)">
+    <!-- Pickaxe handle -->
+    <rect x="70" y="110" width="16" height="120" rx="4" fill="#8B6914" transform="rotate(-45, 78, 170)"/>
+    <!-- Pickaxe head -->
+    <path d="M30,65 L130,65 L140,35 L125,20 L105,28 L55,28 L35,20 L20,35 Z" fill="url(#accent)"/>
+    <path d="M50,45 L110,45 L118,30 L108,22 L82,22 L52,22 L42,30 Z" fill="rgba(255,255,255,0.15)"/>
+    <!-- Block pixel details -->
+    <rect x="55" y="35" width="12" height="12" rx="1" fill="rgba(255,255,255,0.1)"/>
+    <rect x="80" y="35" width="12" height="12" rx="1" fill="rgba(255,255,255,0.1)"/>
+    <rect x="95" y="45" width="8" height="8" rx="1" fill="rgba(255,255,255,0.08)"/>
+  </g>
+
+  <!-- Center: Brand Text -->
+  <text x="1280" y="680" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="96" font-weight="800" fill="white" letter-spacing="4" filter="url(#softGlow)">
+    iPricky Pagnarith
+  </text>
+
+  <!-- Subtitle -->
+  <text x="1280" y="740" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="400" fill="url(#greenH)" letter-spacing="8" opacity="0.9">
+    MINECRAFT ADD-ONS &amp; RHINO 3D TUTORIALS
+  </text>
+
+  <!-- Bottom tagline pills -->
+  <g transform="translate(1280, 790)" text-anchor="middle">
+    <!-- Pill 1: Minecraft -->
+    <g transform="translate(-260, 0)">
+      <rect x="-90" y="-20" width="180" height="36" rx="18" fill="rgba(233,69,96,0.15)" stroke="#e94560" stroke-width="1.5" opacity="0.8"/>
+      <text x="0" y="5" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="15" fill="#ff6b6b" letter-spacing="2">🎮 MINECRAFT</text>
+    </g>
+    <!-- Pill 2: Rhino 3D -->
+    <g transform="translate(0, 0)">
+      <rect x="-80" y="-20" width="160" height="36" rx="18" fill="rgba(0,184,148,0.12)" stroke="#00b894" stroke-width="1.5" opacity="0.8"/>
+      <text x="0" y="5" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="15" fill="#55efc4" letter-spacing="2">🏗️ RHINO 3D</text>
+    </g>
+    <!-- Pill 3: Tutorials -->
+    <g transform="translate(260, 0)">
+      <rect x="-90" y="-20" width="180" height="36" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" opacity="0.8"/>
+      <text x="0" y="5" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="15" fill="rgba(255,255,255,0.7)" letter-spacing="2">📺 TUTORIALS</text>
+    </g>
+  </g>
+
+  <!-- Right side: 3D wireframe cube (Rhino) -->
+  <g transform="translate(1780, 590)" filter="url(#glow)" opacity="0.85">
+    <path d="M0,60 L80,20 L160,60 L80,100 Z" fill="none" stroke="url(#green)" stroke-width="3"/>
+    <path d="M0,60 L0,130 L80,170 L80,100" fill="none" stroke="url(#green)" stroke-width="3"/>
+    <path d="M160,60 L160,130 L80,170" fill="none" stroke="url(#green)" stroke-width="3"/>
+    <!-- Vertices -->
+    <circle cx="80" cy="20" r="5" fill="#55efc4"/>
+    <circle cx="0" cy="60" r="4" fill="#55efc4"/>
+    <circle cx="160" cy="60" r="4" fill="#55efc4"/>
+    <circle cx="80" cy="100" r="3" fill="#55efc4" opacity="0.6"/>
+    <circle cx="0" cy="130" r="3" fill="#55efc4" opacity="0.5"/>
+    <circle cx="160" cy="130" r="3" fill="#55efc4" opacity="0.5"/>
+    <circle cx="80" cy="170" r="4" fill="#55efc4" opacity="0.7"/>
+    <!-- Internal wireframe -->
+    <line x1="80" y1="20" x2="80" y2="100" stroke="#55efc4" stroke-width="1" opacity="0.3"/>
+    <line x1="0" y1="60" x2="160" y2="60" stroke="#55efc4" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <!-- Top accent line (desktop visible area) -->
+  <rect x="880" y="490" width="800" height="2" rx="1" fill="url(#accent)" opacity="0.3"/>
+  <!-- Bottom accent line -->
+  <rect x="880" y="940" width="800" height="2" rx="1" fill="url(#accent)" opacity="0.3"/>
+
+  <!-- YouTube subscribe hint at bottom safe area -->
+  <g transform="translate(1280, 880)" opacity="0.5">
+    <text x="0" y="0" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="rgba(255,255,255,0.5)" letter-spacing="3">
+      SUBSCRIBE FOR WEEKLY CONTENT
+    </text>
+  </g>
+</svg>
