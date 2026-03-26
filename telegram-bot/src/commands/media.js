@@ -282,7 +282,7 @@ ${info.description || '(empty)'}
   bot.command('tg_info', async (ctx) => {
     if (!adminOnly(ctx)) return;
 
-    const channelId = process.env.TELEGRAM_CHANNEL_ID;
+    const channelId = process.env.TELEGRAM_CHANNEL_ID?.trim();
 
     try {
       await ctx.sendChatAction('typing');
@@ -291,33 +291,41 @@ ${info.description || '(empty)'}
         return ctx.reply('❌ TELEGRAM_CHANNEL_ID is not configured.');
       }
 
-      const [chatRes, countRes] = await Promise.all([
-        tgApiCall('getChat', { chat_id: channelId }),
-        tgApiCall('getChatMemberCount', { chat_id: channelId })
-      ]);
+      const chatRes = await tgApiCall('getChat', { chat_id: channelId });
 
       if (!chatRes?.ok || !chatRes.result) {
-        return ctx.reply(`❌ Failed to load Telegram channel info: ${chatRes?.description || 'unknown error'}`);
+        return ctx.reply(
+`❌ Failed to load Telegram channel info.
+
+Telegram API: ${chatRes?.description || 'unknown error'}
+Channel ID: ${channelId}
+
+Check:
+- the bot is an admin/member of the channel
+- TELEGRAM_CHANNEL_ID is correct
+- the channel is a real Telegram channel, not a user/chat`
+        );
       }
 
       const chat = chatRes.result;
-      const memberCount = countRes?.ok ? countRes.result : '(unavailable)';
+      const countRes = await tgApiCall('getChatMemberCount', { chat_id: channelId });
+      const memberCount = countRes?.ok ? String(countRes.result) : '(unavailable)';
 
-      return ctx.replyWithMarkdown(`
-💬 *Telegram Channel*
-*Title:* ${chat.title || chat.username || '(unknown)'}
-*Type:* ${chat.type || '(unknown)'}
-*Username:* ${chat.username ? '@' + chat.username : '(none)'}
-*ID:* \`${chat.id}\`
-*Members:* ${memberCount}
-
-*Description:*
-\`\`\`
-${chat.description || '(empty)'}
-\`\`\`
-
-*Invite link:* ${chat.invite_link || '(none)'}
-      `);
+      return ctx.reply(
+[
+  '💬 Telegram Channel',
+  `Title: ${chat.title || chat.username || '(unknown)'}`,
+  `Type: ${chat.type || '(unknown)'}`,
+  `Username: ${chat.username ? '@' + chat.username : '(none)'}`,
+  `ID: ${chat.id}`,
+  `Members: ${memberCount}`,
+  '',
+  'Description:',
+  chat.description || '(empty)',
+  '',
+  `Invite link: ${chat.invite_link || '(none)'}`
+].join('\n')
+      );
     } catch (e) { ctx.reply('❌ ' + e.message); }
   });
 
