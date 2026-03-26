@@ -12,7 +12,7 @@
  *   /fb_info        — Show current Facebook Page info
  *   /tg_desc <text> — Update Telegram bot description
  *   /tg_short <t>   — Update Telegram bot short description
- *   /tg_info        — Show current Telegram bot info
+ *   /tg_info        — Show current Telegram channel info
  *   /ig_info        — Show Instagram bio (manual-update only)
  *   /tk_info        — Show TikTok bio (manual-update only)
  */
@@ -128,7 +128,7 @@ Facebook:
 /fb_web <url> — Update page website
 
 Telegram:
-/tg_info — View bot info
+/tg_info — View channel info
 /tg_desc <text> — Update bot description
 /tg_short <text> — Update bot short description
 
@@ -287,17 +287,29 @@ ${info.description || '(empty)'}
     try {
       await ctx.sendChatAction('typing');
 
-      if (channelId) {
-        try {
-          const chatRes = await tgApiCall('getChat', { chat_id: channelId });
-          if (chatRes?.ok && chatRes.result) {
-            const chat = chatRes.result;
-            return ctx.replyWithMarkdown(`
+      if (!channelId) {
+        return ctx.reply('❌ TELEGRAM_CHANNEL_ID is not configured.');
+      }
+
+      const [chatRes, countRes] = await Promise.all([
+        tgApiCall('getChat', { chat_id: channelId }),
+        tgApiCall('getChatMemberCount', { chat_id: channelId })
+      ]);
+
+      if (!chatRes?.ok || !chatRes.result) {
+        return ctx.reply(`❌ Failed to load Telegram channel info: ${chatRes?.description || 'unknown error'}`);
+      }
+
+      const chat = chatRes.result;
+      const memberCount = countRes?.ok ? countRes.result : '(unavailable)';
+
+      return ctx.replyWithMarkdown(`
 💬 *Telegram Channel*
 *Title:* ${chat.title || chat.username || '(unknown)'}
 *Type:* ${chat.type || '(unknown)'}
 *Username:* ${chat.username ? '@' + chat.username : '(none)'}
 *ID:* \`${chat.id}\`
+*Members:* ${memberCount}
 
 *Description:*
 \`\`\`
@@ -305,34 +317,6 @@ ${chat.description || '(empty)'}
 \`\`\`
 
 *Invite link:* ${chat.invite_link || '(none)'}
-            `);
-          }
-        } catch (error) {
-          console.warn('Failed to fetch channel info for TELEGRAM_CHANNEL_ID:', error?.message || error);
-        }
-      }
-
-      const [me, desc, short] = await Promise.all([
-        tgApiCall('getMe'),
-        tgApiCall('getMyDescription'),
-        tgApiCall('getMyShortDescription')
-      ]);
-      const d = me.result || {};
-      ctx.replyWithMarkdown(`
-💬 *Telegram Bot*
-*Username:* @${d.username || '(unknown)'}
-*Name:* ${d.first_name || '(unknown)'}
-*Can join groups:* ${'can_join_groups' in d ? String(d.can_join_groups) : '(unknown)'}
-
-*Description:*
-\`\`\`
-${desc.result?.description || '(empty)'}
-\`\`\`
-
-*Short description:*
-\`\`\`
-${short.result?.short_description || '(empty)'}
-\`\`\`
       `);
     } catch (e) { ctx.reply('❌ ' + e.message); }
   });
