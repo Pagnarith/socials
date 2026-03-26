@@ -291,7 +291,10 @@ ${info.description || '(empty)'}
         return ctx.reply('❌ TELEGRAM_CHANNEL_ID is not configured.');
       }
 
-      const chatRes = await tgApiCall('getChat', { chat_id: channelId });
+      const [chatRes, countRes] = await Promise.all([
+        tgApiCall('getChat', { chat_id: channelId }),
+        tgApiCall('getChatMemberCount', { chat_id: channelId })
+      ]);
 
       if (!chatRes?.ok || !chatRes.result) {
         return ctx.reply(
@@ -308,7 +311,6 @@ Check:
       }
 
       const chat = chatRes.result;
-      const countRes = await tgApiCall('getChatMemberCount', { chat_id: channelId });
       const memberCount = countRes?.ok ? String(countRes.result) : '(unavailable)';
 
       return ctx.reply(
