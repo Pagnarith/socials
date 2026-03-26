@@ -1,5 +1,5 @@
 import { Markup } from 'telegraf';
-import { SOCIAL_LINKS } from '../config.js';
+import { SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
 
 const backButton = Markup.inlineKeyboard([
   [Markup.button.callback('🔙 Back to Menu', 'back_menu')]
@@ -15,8 +15,12 @@ export function registerHandlers(bot) {
         Markup.button.callback('🖥️ Rhino 3D', 'menu_rhino3d'),
       ],
       [
+        Markup.button.callback('🛒 Products', 'menu_products'),
         Markup.button.callback('📺 Latest Video', 'menu_latest'),
+      ],
+      [
         Markup.button.callback('🔗 Social Links', 'menu_links'),
+        Markup.button.callback('💝 Support Us', 'menu_donate'),
       ],
       [
         Markup.button.callback('🔔 Subscribe', 'menu_subscribe'),
@@ -32,25 +36,67 @@ export function registerHandlers(bot) {
 
 We build custom Bedrock Edition Add-ons!
 
-📦 Available: Coming soon
-📺 Demos on YouTube
-🛒 Microsoft Marketplace
+📦 *YuttTools* — Helper Robot companion
+🆓 Free for everyone
+🛒 Coming to Microsoft Marketplace
 
 What would you like to know?
-    `, backButton);
+    `, Markup.inlineKeyboard([
+      [Markup.button.url('🎬 YouTube', SOCIAL_LINKS.youtube)],
+      [Markup.button.callback('🔔 Notify Me', 'notify_minecraft')],
+      [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
+    ]));
   });
 
   bot.action('menu_rhino3d', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🖥️ *Rhino 3D Tutorials*
+🖥️ *Rhino 3D — Plugins & Tutorials*
 
-Learn professional 3D modeling from scratch.
+Professional plugins and tutorials for Rhinoceros 3D.
 
-📚 Beginner to Advanced series
+🔌 *Plugins for sale* — Starting from $19
+📚 Beginner to Advanced tutorials
 📱 Quick tips on TikTok
 📺 Full tutorials on YouTube
-    `, backButton);
+    `, Markup.inlineKeyboard([
+      [Markup.button.url('🛒 Browse Plugins', PRODUCT_LINKS.rhinoStore)],
+      [Markup.button.url('🎬 YouTube', SOCIAL_LINKS.youtube)],
+      [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
+    ]));
+  });
+
+  bot.action('menu_products', (ctx) => {
+    ctx.answerCbQuery();
+    ctx.replyWithMarkdown(`
+🛒 *Our Products*
+
+🎮 *Minecraft* — Free Add-ons for Bedrock Edition
+🖥️ *Rhino Plugins* — Professional tools ($19-$149)
+📦 *Bundle* — All plugins at discount ($199-$299)
+
+Use /products for full details!
+    `, Markup.inlineKeyboard([
+      [Markup.button.url('🦏 food4Rhino', PRODUCT_LINKS.rhinoStore)],
+      [Markup.button.url('🛍️ Gumroad', PRODUCT_LINKS.gumroad)],
+      [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
+    ]));
+  });
+
+  bot.action('menu_donate', (ctx) => {
+    ctx.answerCbQuery();
+    ctx.replyWithMarkdown(`
+💝 *Support Our Work*
+
+Our free content takes time & effort to create.
+Every contribution helps us keep going!
+
+Use /donate for all support options.
+    `, Markup.inlineKeyboard([
+      [Markup.button.url('☕ Buy Me a Coffee', DONATE_LINKS.buyMeACoffee)],
+      [Markup.button.url('🎯 GitHub Sponsors', DONATE_LINKS.githubSponsors)],
+      [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
+    ]));
   });
 
   bot.action('menu_latest', (ctx) => {
@@ -66,6 +112,7 @@ Learn professional 3D modeling from scratch.
 📘 Facebook: ${SOCIAL_LINKS.facebook}
 📱 TikTok: ${SOCIAL_LINKS.tiktok}
 📷 Instagram: ${SOCIAL_LINKS.instagram}
+🛒 Shop: ${PRODUCT_LINKS.productsPage}
     `, backButton);
   });
 
@@ -82,14 +129,18 @@ Learn professional 3D modeling from scratch.
   // Handle text messages — Auto-reply for common keywords
   bot.on('text', (ctx) => {
     const raw = ctx.message.text;
-    if (!raw || raw.startsWith('/')) return; // commands handled by their own middleware
+    if (!raw || raw.startsWith('/')) return;
     const text = raw.toLowerCase();
     const match = (pattern) => pattern.test(text);
 
-    if (match(/\b(?:minecraft|add-?on|addon)\b/)) {
+    if (match(/\b(?:buy|purchase|price|pricing|store|shop)\b/)) {
+      ctx.reply('🛒 Check out our products with /products — Rhino plugins starting from $19!');
+    } else if (match(/\b(?:donate|support|sponsor|coffee|patreon)\b/)) {
+      ctx.reply('💝 Thank you for wanting to support us! Use /donate to see all options.');
+    } else if (match(/\b(?:plugin|rhino|3d|modeling)\b/)) {
+      ctx.reply('🖥️ Interested in Rhino 3D? Use /rhino3d for plugins & tutorials!');
+    } else if (match(/\b(?:minecraft|add-?on|addon)\b/)) {
       ctx.reply('🎮 Interested in Minecraft? Use /minecraft for all the details!');
-    } else if (match(/\b(?:rhino|3d|modeling)\b/)) {
-      ctx.reply('🖥️ Looking for 3D tutorials? Use /rhino3d for our tutorial series!');
     } else if (match(/\b(?:youtube|video)\b/)) {
       ctx.reply('📺 Check out our latest videos with /latest or find our channel with /links');
     } else if (match(/\b(?:hello|hi|hey)\b/)) {

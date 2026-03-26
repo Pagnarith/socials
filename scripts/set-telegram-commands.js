@@ -11,8 +11,10 @@ const COMMANDS = [
   { command: 'menu', description: 'Open main menu' },
   { command: 'latest', description: 'Show latest video info' },
   { command: 'minecraft', description: 'Minecraft add-on info' },
-  { command: 'rhino3d', description: 'Rhino 3D tutorial info' },
-  { command: 'links', description: 'Social media links' },
+  { command: 'rhino3d', description: 'Rhino 3D plugins & tutorials' },
+  { command: 'products', description: 'Our products & plugins' },
+  { command: 'donate', description: 'Support our work' },
+  { command: 'links', description: 'Social media & store links' },
   { command: 'subscribe', description: 'Subscribe to notifications' },
   { command: 'unsubscribe', description: 'Unsubscribe from notifications' },
   { command: 'help', description: 'Show all commands' }
