@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/telegram-webhook.js": {
-      "maxDuration": 10
+      "maxDuration": 25
     },
     "api/cron/*.js": {
       "maxDuration": 10

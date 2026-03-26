@@ -91,7 +91,7 @@ async function tgApiCall(method, body = {}) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(8000)
+    signal: AbortSignal.timeout(5000)
   });
   return res.json();
 }
@@ -285,8 +285,6 @@ ${info.description || '(empty)'}
     const channelId = process.env.TELEGRAM_CHANNEL_ID?.trim();
 
     try {
-      await ctx.sendChatAction('typing');
-
       if (!channelId) {
         return ctx.reply('❌ TELEGRAM_CHANNEL_ID is not configured.');
       }
