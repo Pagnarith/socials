@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="50%" style="stop-color:#16213e"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e94560"/>
+      <stop offset="100%" style="stop-color:#ff6b6b"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00b894"/>
+      <stop offset="100%" style="stop-color:#55efc4"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="800" fill="url(#bg)"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.04">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="none" stroke="#fff" stroke-width="0.5"/>
+    </pattern>
+    <rect width="800" height="800" fill="url(#grid)"/>
+  </g>
+
+  <!-- Decorative wireframe elements -->
+  <g opacity="0.08">
+    <circle cx="120" cy="120" r="60" fill="none" stroke="#55efc4" stroke-width="1"/>
+    <circle cx="680" cy="680" r="80" fill="none" stroke="#e94560" stroke-width="1"/>
+    <rect x="620" y="80" width="50" height="50" rx="4" fill="none" stroke="#55efc4" stroke-width="1" transform="rotate(15, 645, 105)"/>
+    <rect x="80" y="620" width="40" height="40" rx="4" fill="none" stroke="#e94560" stroke-width="1" transform="rotate(-10, 100, 640)"/>
+  </g>
+
+  <!-- Center circle background -->
+  <circle cx="400" cy="300" r="180" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Large 3D wireframe cube — Rhino focus -->
+  <g transform="translate(300, 180)" filter="url(#glow)">
+    <!-- Isometric cube wireframe -->
+    <path d="M100,0 L200,55 L200,165 L100,220 L0,165 L0,55 Z" fill="none" stroke="url(#green)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M0,55 L100,110 L200,55" fill="none" stroke="url(#green)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M100,110 L100,220" fill="none" stroke="url(#green)" stroke-width="3"/>
+    <!-- Vertices -->
+    <circle cx="100" cy="0" r="5" fill="#55efc4"/>
+    <circle cx="200" cy="55" r="5" fill="#55efc4"/>
+    <circle cx="0" cy="55" r="5" fill="#55efc4"/>
+    <circle cx="100" cy="110" r="5" fill="#55efc4"/>
+    <circle cx="200" cy="165" r="4" fill="#55efc4" opacity="0.6"/>
+    <circle cx="0" cy="165" r="4" fill="#55efc4" opacity="0.6"/>
+    <circle cx="100" cy="220" r="4" fill="#55efc4" opacity="0.6"/>
+    <!-- Inner diagonal lines (mesh look) -->
+    <path d="M50,27 L150,82" fill="none" stroke="url(#green)" stroke-width="1" opacity="0.4"/>
+    <path d="M50,82 L150,27" fill="none" stroke="url(#green)" stroke-width="1" opacity="0.4"/>
+  </g>
+
+  <!-- Small Rhino horn accent -->
+  <g transform="translate(340, 400)" filter="url(#glow)" opacity="0.9">
+    <path d="M60,30 C60,10 50,0 40,0 C30,0 20,10 20,30 L10,60 L70,60 Z" fill="url(#accent)" opacity="0.7"/>
+    <path d="M35,5 C35,5 42,2 45,8" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  </g>
+
+  <!-- Brand name -->
+  <text x="400" y="510" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="56" font-weight="800" fill="white" letter-spacing="2">
+    Chakriya
+  </text>
+  <text x="400" y="555" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="24" font-weight="400" fill="url(#green)" letter-spacing="4">
+    PLUGINS
+  </text>
+
+  <!-- Tagline -->
+  <text x="400" y="605" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="18" fill="rgba(255,255,255,0.5)" letter-spacing="1">
+    Professional Rhino 3D Tools
+  </text>
+
+  <!-- Bottom accent line -->
+  <rect x="280" y="650" width="240" height="3" rx="1.5" fill="url(#accent)" opacity="0.7"/>
+
+  <!-- Small plugin count badge -->
+  <g transform="translate(340, 680)">
+    <rect x="0" y="0" width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <text x="60" y="24" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.6)">5+ Plugins</text>
+  </g>
+</svg>
