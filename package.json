@@ -19,6 +19,7 @@
     "lint": "npm run lint --workspace=dashboard",
     "setup": "npm install && cp -n .env.example .env || true",
     "update:youtube": "node scripts/update-youtube-channel.js",
+    "rebrand:socials": "node scripts/rebrand-socials.js",
     "set:telegram-webhook": "node scripts/set-telegram-webhook.js"
   },
   "dependencies": {

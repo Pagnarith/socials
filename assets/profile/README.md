@@ -2,7 +2,14 @@
 
 > Brand: **Homework Palette** · Publisher: **Chakriya**  
 > Product: Grade 1–6 homework for families (Khmer & English)  
-> Existing handles may still be `@iprickypagnarith` until accounts are renamed.
+> Display name on all platforms: **Homework Palette**
+
+```bash
+# Push live names/bios where APIs allow
+npm run rebrand:socials
+```
+
+Handles may still be `@iprickypagnarith` / `chakriyanet` until renamed in each app.
 
 ---
 

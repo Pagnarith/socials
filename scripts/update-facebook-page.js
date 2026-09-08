@@ -62,8 +62,12 @@ async function main() {
     const pageToken = await getPageScopedToken();
     console.log('Got page-scoped token (masked):', pageToken.slice(0, 8) + '...');
 
+    console.log('Updating name...');
+    let r = await updateField(pageToken, 'name', 'Homework Palette');
+    console.log('name ->', r.status, r.data);
+
     console.log('Updating about...');
-    let r = await updateField(pageToken, 'about', about);
+    r = await updateField(pageToken, 'about', about);
     console.log('about ->', r.status, r.data);
 
     console.log('Updating description...');

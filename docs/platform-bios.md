@@ -1,6 +1,38 @@
 # Platform Bios — Homework Palette
 
-Paste-ready bios. Publisher: Chakriya · App: https://apps.apple.com/app/id6801068446 · Site: https://homework.chakriya.net/
+**Display name everywhere:** `Homework Palette`  
+Publisher: Chakriya · App: https://apps.apple.com/app/id6801068446 · Site: https://homework.chakriya.net/
+
+Apply live (Telegram / Facebook about / YouTube when token is valid):
+
+```bash
+npm run rebrand:socials
+```
+
+### Live update status (last run)
+
+| Surface | Status |
+|---------|--------|
+| Telegram bot name + bios + commands | Updated via API |
+| Telegram channel title + description | Updated via API |
+| Facebook about / description / website | Updated via API |
+| Facebook **Page name** | Manual — Meta app lacks rename capability (#3) |
+| YouTube title + description | Re-authorize OAuth (`npm run update:youtube`), then re-run |
+| Instagram name + bio | Manual in Instagram app |
+| TikTok name + bio | Manual in TikTok app |
+
+---
+
+## Display names
+
+| Platform | Name |
+|----------|------|
+| YouTube | Homework Palette |
+| Facebook | Homework Palette |
+| Instagram | Homework Palette |
+| TikTok | Homework Palette |
+| Telegram bot | Homework Palette |
+| Telegram channel | Homework Palette |
 
 ---
 
@@ -20,6 +52,12 @@ Publisher: Chakriya · contact@chakriya.net
 ```
 
 ---
+
+## Facebook — About (short)
+
+```
+Homework Palette — grade 1–6 homework for families (Khmer & English). Free on the App Store. https://homework.chakriya.net/
+```
 
 ## Facebook — About (Long)
 
@@ -74,4 +112,11 @@ Official Homework Palette bot from Chakriya.
 
 https://homework.chakriya.net/
 https://apps.apple.com/app/id6801068446
+```
+
+## Telegram — Channel description
+
+```
+Homework Palette — grade 1–6 homework for families (Khmer & English).
+Free on the App Store · https://homework.chakriya.net/
 ```
