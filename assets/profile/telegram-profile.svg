@@ -1,32 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1625"/>
-      <stop offset="55%" style="stop-color:#2a2440"/>
-      <stop offset="100%" style="stop-color:#534ab7"/>
+      <stop offset="0%" stop-color="#faf9fc"/>
+      <stop offset="100%" stop-color="#e8e4f8"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2aabee"/>
-      <stop offset="100%" style="stop-color:#229ED9"/>
-    </linearGradient>
-    <linearGradient id="book" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#7f77dd"/>
-      <stop offset="100%" style="stop-color:#a79ff0"/>
+    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7f77dd"/>
+      <stop offset="100%" stop-color="#534ab7"/>
     </linearGradient>
   </defs>
   <rect width="800" height="800" fill="url(#bg)"/>
-  <circle cx="400" cy="300" r="150" fill="rgba(127,119,221,0.12)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
-  <!-- Open book icon -->
-  <g transform="translate(280,200)">
-    <path d="M40,40 C70,20 110,20 140,40 L140,180 C110,160 70,160 40,180 Z" fill="url(#book)" opacity="0.95"/>
-    <path d="M140,40 C170,20 210,20 240,40 L240,180 C210,160 170,160 140,180 Z" fill="url(#accent)" opacity="0.9"/>
-    <path d="M140,40 L140,180" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
-    <rect x="70" y="70" width="50" height="6" rx="2" fill="rgba(255,255,255,0.35)"/>
-    <rect x="70" y="90" width="40" height="6" rx="2" fill="rgba(255,255,255,0.25)"/>
-    <rect x="160" y="70" width="50" height="6" rx="2" fill="rgba(255,255,255,0.35)"/>
-    <rect x="160" y="90" width="40" height="6" rx="2" fill="rgba(255,255,255,0.25)"/>
-  </g>
-  <text x="400" y="500" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="42" font-weight="800" fill="white">Homework Palette</text>
-  <text x="400" y="545" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="22" font-weight="500" fill="#c4b5fd">Grade 1–6 · Khmer &amp; English</text>
-  <text x="400" y="700" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="20" fill="rgba(255,255,255,0.55)">homework.chakriya.net</text>
+  <circle cx="400" cy="400" r="370" fill="none" stroke="#2aabee" stroke-width="28" opacity="0.9"/>
+  <circle cx="400" cy="400" r="340" fill="none" stroke="#fff" stroke-width="6" opacity="0.7"/>
+  <rect x="250" y="230" width="300" height="300" rx="68" fill="url(#tile)"/>
+  <path d="M310,300 C350,275 390,275 400,295 C410,275 450,275 490,300 L490,460 C450,435 410,435 400,455 C390,435 350,435 310,460 Z" fill="#fff" opacity="0.95"/>
+  <path d="M400,295 L400,455" stroke="#7f77dd" stroke-width="4" opacity="0.35"/>
+  <circle cx="330" cy="560" r="14" fill="#1d9e75"/>
+  <circle cx="370" cy="560" r="14" fill="#e0a73c"/>
+  <circle cx="410" cy="560" r="14" fill="#f08a62"/>
+  <circle cx="450" cy="560" r="14" fill="#7f77dd"/>
+  <circle cx="490" cy="560" r="14" fill="#8fcc4e"/>
 </svg>

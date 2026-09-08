@@ -1,4 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
-  <rect width="150" height="150" rx="28" fill="#7f77dd"/>
-  <text x="75" y="88" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="42" font-weight="800" fill="white">HP</text>
+  <defs>
+    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7f77dd"/>
+      <stop offset="100%" stop-color="#534ab7"/>
+    </linearGradient>
+  </defs>
+  <rect width="150" height="150" rx="34" fill="url(#tile)"/>
+  <path d="M38,48 C55,34 72,34 75,48 C78,34 95,34 112,48 L112,108 C95,94 78,94 75,108 C72,94 55,94 38,108 Z" fill="#fff" opacity="0.95"/>
 </svg>

@@ -1,26 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1625"/>
-      <stop offset="50%" style="stop-color:#2a2440"/>
-      <stop offset="100%" style="stop-color:#534ab7"/>
+      <stop offset="0%" stop-color="#faf9fc"/>
+      <stop offset="55%" stop-color="#efeafc"/>
+      <stop offset="100%" stop-color="#ddd6f8"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#7f77dd"/>
-      <stop offset="100%" style="stop-color:#a79ff0"/>
+    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7f77dd"/>
+      <stop offset="100%" stop-color="#534ab7"/>
     </linearGradient>
   </defs>
   <rect width="2560" height="1440" fill="url(#bg)"/>
-  <!-- Safe-area centered content ~1546x423 -->
+  <circle cx="2200" cy="280" r="220" fill="#7f77dd" opacity="0.10"/>
+  <circle cx="400" cy="1200" r="280" fill="#a79ff0" opacity="0.14"/>
   <g transform="translate(507,508)">
-    <text x="773" y="140" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="72" font-weight="800" fill="white">Homework Palette</text>
-    <text x="773" y="210" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="34" fill="#c4b5fd">Grade 1–6 homework for families · Khmer &amp; English</text>
-    <rect x="520" y="250" width="180" height="48" rx="24" fill="url(#accent)"/>
-    <text x="610" y="282" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="700" fill="white">Free library</text>
-    <rect x="720" y="250" width="200" height="48" rx="24" fill="rgba(255,255,255,0.12)" stroke="#a79ff0"/>
-    <text x="820" y="282" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="700" fill="white">Lesson recorder</text>
-    <rect x="940" y="250" width="180" height="48" rx="24" fill="rgba(255,255,255,0.12)" stroke="#a79ff0"/>
-    <text x="1030" y="282" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="700" fill="white">Palette Pro</text>
-    <text x="773" y="360" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.55)">homework.chakriya.net · App Store</text>
+    <rect x="40" y="40" width="120" height="120" rx="28" fill="url(#tile)"/>
+    <path d="M62,72 C80,58 98,58 100,70 C102,58 120,58 138,72 L138,140 C120,126 102,126 100,138 C98,126 80,126 62,140 Z" fill="#fff" opacity="0.95"/>
+    <text x="200" y="100" font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="700" fill="#1a1625">Homework Palette</text>
+    <text x="200" y="160" font-family="'Segoe UI', Arial, sans-serif" font-size="30" fill="#5c5670">Grade 1–6 homework for families · Khmer &amp; English</text>
+    <circle cx="210" cy="230" r="12" fill="#1d9e75"/>
+    <circle cx="250" cy="230" r="12" fill="#e0a73c"/>
+    <circle cx="290" cy="230" r="12" fill="#f08a62"/>
+    <circle cx="330" cy="230" r="12" fill="#7f77dd"/>
+    <circle cx="370" cy="230" r="12" fill="#8fcc4e"/>
+    <text x="410" y="238" font-family="'Segoe UI', Arial, sans-serif" font-size="22" fill="#5c5670">Free library · Lesson recorder · Palette Pro</text>
+    <text x="200" y="320" font-family="'Segoe UI', Arial, sans-serif" font-size="22" fill="#7f77dd">homework.chakriya.net · App Store</text>
   </g>
 </svg>

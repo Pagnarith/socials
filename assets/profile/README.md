@@ -1,71 +1,54 @@
 # Social Media Profiles — Homework Palette
 
 > Brand: **Homework Palette** · Publisher: **Chakriya**  
-> Product: Grade 1–6 homework for families (Khmer & English)  
-> Display name on all platforms: **Homework Palette**
+> Display name: **Homework Palette**  
+> Visual: soft lavender cream + purple book / palette mark
 
 ```bash
-# Push live names/bios where APIs allow
-npm run rebrand:socials
+npm run rebrand:socials   # names & bios via API
 ```
-
-Handles may still be `@iprickypagnarith` / `chakriyanet` until renamed in each app.
 
 ---
 
-## Profile Images
+## Profile images (800×800 PNG)
 
-SVGs in `assets/profile/` (800×800), purple Homework Palette book mark + platform accent.
+| Platform | File | Accent ring |
+|----------|------|-------------|
+| YouTube | `youtube-profile.png` | Red |
+| Facebook | `facebook-profile.png` | Blue |
+| Instagram | `instagram-profile.png` | Pink |
+| TikTok | `tiktok-profile.png` | Cyan + pink corners |
+| Telegram | `telegram-profile.png` | Telegram blue |
+| App Store / generic | `appstore-profile.png` | Brand purple |
+| Buy Me a Coffee | `buymeacoffee-profile.png` | Yellow |
 
-| Platform  | File                      | Accent              |
-|-----------|---------------------------|---------------------|
-| YouTube   | `youtube-profile.svg`     | Red                 |
-| Facebook  | `facebook-profile.svg`    | Blue                |
-| Instagram | `instagram-profile.svg`   | IG gradient tones   |
-| TikTok    | `tiktok-profile.svg`      | Cyan + Pink         |
-| Telegram  | `telegram-profile.svg`    | Telegram blue       |
-| App Store | `appstore-profile.svg`    | Palette purple      |
-| BMC       | `buymeacoffee-profile.svg`| Yellow              |
+Master (no ring): `_master-profile.png`  
+Vector fallbacks: matching `*.svg` (icon mark only)
 
-**Export PNG:**
-```bash
-# Using rsvg-convert (brew install librsvg)
-for f in assets/profile/*.svg assets/banner/*.svg; do
-  rsvg-convert -w 800 -h 800 "$f" -o "${f%.svg}.png" 2>/dev/null || true
-done
-```
-
-Banners: `assets/banner/youtube-banner.svg`, `facebook-cover.svg`, `youtube-watermark.svg`.
+**Upload tip:** Use the PNG. Circle crops stay centered on the book mark.
 
 ---
 
-## Bios
+## Banners
 
-Canonical paste-ready copy lives in [`docs/platform-bios.md`](../../docs/platform-bios.md).
+| Asset | Size | File |
+|-------|------|------|
+| YouTube channel art | 2560×1440 | `../banner/youtube-banner.png` |
+| Facebook cover | 1640×924 | `../banner/facebook-cover.png` |
+| Wide cover | 1584×396 | `../banner/social-cover-wide.png` |
+| YouTube watermark | 150×150 | `../banner/youtube-watermark.png` |
 
-**Primary links**
+Masters: `_master-banner.png` · SVG text fallbacks also in `../banner/`.
+
+---
+
+## Bios & links
+
+See [`docs/platform-bios.md`](../../docs/platform-bios.md).
 
 | Link | URL |
 |------|-----|
 | App Store | https://apps.apple.com/app/id6801068446 |
 | Site | https://homework.chakriya.net/ |
 | Poster | https://homework.chakriya.net/poster.html |
-| Ops dashboard | https://social.chakriya.net |
-
-**Hashtags**
-
-```
-#HomeworkPalette #FamilyHomework #Grade1to6 #Khmer #Cambodia #ParentTips #EdTech #iOSApps #AppStore #BilingualKids
-```
-
----
-
-## Cross-Platform Accounts (current)
-
-| Platform  | URL |
-|-----------|-----|
-| YouTube   | https://youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg |
-| Facebook  | https://www.facebook.com/chakriyanet |
-| Instagram | https://instagram.com/iprickypagnarith |
-| TikTok    | https://tiktok.com/@iprickypagnarith |
-| Dashboard | https://social.chakriya.net |
+| Ops | https://social.chakriya.net |
