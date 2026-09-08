@@ -4,7 +4,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const baseUrl = process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const baseUrl =
+  process.env.TELEGRAM_WEBHOOK_BASE_URL ||
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  'https://socials-seven-beta.vercel.app';
 const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
 
 if (!token) {

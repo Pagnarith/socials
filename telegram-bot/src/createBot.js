@@ -5,6 +5,7 @@ import { registerHandlers } from './handlers/index.js';
 
 let cachedBot = null;
 let scheduledJobsInitialized = false;
+let botInfoPromise = null;
 
 export function createBot() {
   if (cachedBot) return cachedBot;
@@ -17,14 +18,11 @@ export function createBot() {
 
   const bot = new Telegraf(token);
 
-  bot.botInfo = { username: 'HomeworkPaletteBot' };
-
+  // Do NOT hardcode botInfo — wrong username breaks /cmd@real_bot matching.
   registerCommands(bot);
   registerMediaCommands(bot);
   registerHandlers(bot);
 
-  // Cron jobs only make sense in a long-running process.
-  // Lazy-import scheduler to avoid loading node-cron in serverless context.
   if (process.env.ENABLE_TELEGRAM_SCHEDULER === '1' && !scheduledJobsInitialized) {
     scheduledJobsInitialized = true;
     import('./scheduler.js')
@@ -32,10 +30,32 @@ export function createBot() {
       .catch((err) => console.error('Failed to init scheduler:', err));
   }
 
-  bot.catch((err, ctx) => {
-    console.error(`Error for ${ctx.updateType}:`, err);
+  bot.catch(async (err, ctx) => {
+    console.error(`Error for ${ctx?.updateType}:`, err);
+    try {
+      if (ctx?.reply) {
+        await ctx.reply('Sorry — that command failed. Try /menu or /help.');
+      }
+    } catch {
+      // ignore secondary reply failures
+    }
   });
 
   cachedBot = bot;
   return bot;
+}
+
+/** Ensure botInfo is loaded once (needed for reliable command matching in webhook mode). */
+export async function ensureBotInfo(bot = createBot()) {
+  if (bot.botInfo?.username) return bot.botInfo;
+  if (!botInfoPromise) {
+    botInfoPromise = bot.telegram.getMe().then((info) => {
+      bot.botInfo = info;
+      return info;
+    }).catch((err) => {
+      botInfoPromise = null;
+      throw err;
+    });
+  }
+  return botInfoPromise;
 }

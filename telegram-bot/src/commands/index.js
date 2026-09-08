@@ -1,31 +1,32 @@
 import { Markup } from 'telegraf';
 import { BRAND, SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
 import { isAdmin } from '../admin.js';
+import { escapeHtml, replyHtml } from '../reply.js';
 
 export function registerCommands(bot) {
   bot.start((ctx) => {
     const welcomeMessage = `
-📚 Welcome to *${BRAND.name} Bot*!
+📚 Welcome to <b>${escapeHtml(BRAND.name)} Bot</b>!
 
-${BRAND.tagline}
+${escapeHtml(BRAND.tagline)}
 
-Publisher: ${BRAND.publisher}
+Publisher: ${escapeHtml(BRAND.publisher)}
 
 🔹 /menu — Main menu
 🔹 /latest — Latest video
 🔹 /app — About the app
-🔹 /features — Free & Palette Pro
+🔹 /features — Free &amp; Palette Pro
 🔹 /download — App Store link
-🔹 /links — Social & website links
+🔹 /links — Social &amp; website links
 🔹 /donate — Support our work
 🔹 /subscribe — Get notified for new content
 🔹 /media — Manage social media (admin)
 🔹 /help — All commands
 
-App: ${PRODUCT_LINKS.marketingSite}
-Ops: ${SOCIAL_LINKS.website}
+App: ${escapeHtml(PRODUCT_LINKS.marketingSite)}
+Ops: ${escapeHtml(SOCIAL_LINKS.website)}
     `;
-    ctx.replyWithMarkdown(welcomeMessage.trim(), mainMenuKeyboard());
+    replyHtml(ctx, welcomeMessage.trim(), mainMenuKeyboard());
   });
 
   bot.command('menu', (ctx) => {
@@ -33,29 +34,29 @@ Ops: ${SOCIAL_LINKS.website}
   });
 
   bot.command('latest', (ctx) => {
-    ctx.replyWithMarkdown(`
-📺 *Latest Videos*
+    replyHtml(ctx, `
+📺 <b>Latest Videos</b>
 
-📚 *Homework Palette* demos, parent tips, and lesson-recorder clips — coming soon.
+📚 <b>Homework Palette</b> demos, parent tips, and lesson-recorder clips — coming soon.
 
 Subscribe with /subscribe to get notified when new videos drop!
-Get the app: ${PRODUCT_LINKS.appStore}
-    `);
+Get the app: ${escapeHtml(PRODUCT_LINKS.appStore)}
+    `.trim());
   });
 
   bot.command('app', (ctx) => {
-    ctx.replyWithMarkdown(`
-📚 *${BRAND.name}*
+    replyHtml(ctx, `
+📚 <b>${escapeHtml(BRAND.name)}</b>
 
-Native iPhone & iPad homework app for grades 1–6.
-Built for families — Khmer & English.
+Native iPhone &amp; iPad homework app for grades 1–6.
+Built for families — Khmer &amp; English.
 
-🆓 *Free:* library, print, worksheet builder, read-aloud, lesson recorder
-⭐ *Palette Pro:* in-app quizzes with scores & progress
+🆓 <b>Free:</b> library, print, worksheet builder, read-aloud, lesson recorder
+⭐ <b>Palette Pro:</b> in-app quizzes with scores &amp; progress
 
-🌐 ${PRODUCT_LINKS.marketingSite}
-📱 ${PRODUCT_LINKS.appStore}
-    `, Markup.inlineKeyboard([
+🌐 ${escapeHtml(PRODUCT_LINKS.marketingSite)}
+📱 ${escapeHtml(PRODUCT_LINKS.appStore)}
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 Download on the App Store', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🌐 homework.chakriya.net', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔔 Notify Me on Updates', 'notify_app')],
@@ -64,18 +65,18 @@ Built for families — Khmer & English.
   });
 
   bot.command('features', (ctx) => {
-    ctx.replyWithMarkdown(`
-✨ *${BRAND.name} — Features*
+    replyHtml(ctx, `
+✨ <b>${escapeHtml(BRAND.name)} — Features</b>
 
-📚 *Free library* — 100 exercises per grade, browse & print
-🛠️ *Builder* — photos, voice notes, custom worksheets
-🔊 *Read-aloud* — offline Khmer & English
-🎥 *Lesson recorder* — screen + optional face/mic; finishes in the background
-🔔 *Video ready* — optional notification when export completes
-⭐ *Palette Pro* — in-app quizzes & progress
+📚 <b>Free library</b> — 100 exercises per grade, browse &amp; print
+🛠️ <b>Builder</b> — photos, voice notes, custom worksheets
+🔊 <b>Read-aloud</b> — offline Khmer &amp; English
+🎥 <b>Lesson recorder</b> — screen + optional face/mic; finishes in the background
+🔔 <b>Video ready</b> — optional notification when export completes
+⭐ <b>Palette Pro</b> — in-app quizzes &amp; progress
 
-Poster for sharing: ${PRODUCT_LINKS.poster}
-    `, Markup.inlineKeyboard([
+Poster for sharing: ${escapeHtml(PRODUCT_LINKS.poster)}
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 Get the app', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🖼️ Share poster', PRODUCT_LINKS.poster)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -83,34 +84,33 @@ Poster for sharing: ${PRODUCT_LINKS.poster}
   });
 
   bot.command('download', (ctx) => {
-    ctx.replyWithMarkdown(`
-📱 *Download ${BRAND.name}*
+    replyHtml(ctx, `
+📱 <b>Download ${escapeHtml(BRAND.name)}</b>
 
 Free on the App Store — grades 1–6 homework for families.
 
-${PRODUCT_LINKS.appStore}
+${escapeHtml(PRODUCT_LINKS.appStore)}
 
-Site: ${PRODUCT_LINKS.marketingSite}
-    `, Markup.inlineKeyboard([
+Site: ${escapeHtml(PRODUCT_LINKS.marketingSite)}
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  // Keep /products as alias → download/app summary
   bot.command('products', (ctx) => {
-    ctx.replyWithMarkdown(`
-🛒 *${BRAND.name}*
+    replyHtml(ctx, `
+🛒 <b>${escapeHtml(BRAND.name)}</b>
 
 📱 Free on the App Store (id 6801068446)
 ⭐ Palette Pro unlocks in-app quizzes
 
-🌐 ${PRODUCT_LINKS.marketingSite}
-🖼️ Poster: ${PRODUCT_LINKS.poster}
+🌐 ${escapeHtml(PRODUCT_LINKS.marketingSite)}
+🖼️ Poster: ${escapeHtml(PRODUCT_LINKS.poster)}
 
 Love the free library? /donate to support development.
-    `, Markup.inlineKeyboard([
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -118,19 +118,19 @@ Love the free library? /donate to support development.
   });
 
   bot.command('donate', (ctx) => {
-    ctx.replyWithMarkdown(`
-💝 *Support ${BRAND.name}*
+    replyHtml(ctx, `
+💝 <b>Support ${escapeHtml(BRAND.name)}</b>
 
 The grade 1–6 library, builder, read-aloud, and lesson recorder stay free.
 Your support helps us keep shipping updates for families.
 
-☕ *Buy Me a Coffee* — One-time support
-🎯 *GitHub Sponsors* — Monthly sponsorship
-🎨 *Patreon* — Exclusive updates & early access
-💬 *YouTube Super Chat* — Support during streams
+☕ <b>Buy Me a Coffee</b> — One-time support
+🎯 <b>GitHub Sponsors</b> — Monthly sponsorship
+🎨 <b>Patreon</b> — Exclusive updates &amp; early access
+💬 <b>YouTube Super Chat</b> — Support during streams
 
 Thank you for being part of the community! 🙏
-    `, Markup.inlineKeyboard([
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('☕ Buy Me a Coffee', DONATE_LINKS.buyMeACoffee)],
       [Markup.button.url('🎯 GitHub Sponsors', DONATE_LINKS.githubSponsors)],
       [Markup.button.url('🎨 Patreon', DONATE_LINKS.patreon)],
@@ -139,57 +139,59 @@ Thank you for being part of the community! 🙏
   });
 
   bot.command('links', (ctx) => {
-    ctx.replyWithMarkdown(`
-🔗 *Links*
+    replyHtml(ctx, `
+🔗 <b>Links</b>
 
-📺 YouTube: [Subscribe](${SOCIAL_LINKS.youtube})
-📘 Facebook: [Follow](${SOCIAL_LINKS.facebook})
-📷 Instagram: [Follow](${SOCIAL_LINKS.instagram})
-📱 TikTok: [Follow](${SOCIAL_LINKS.tiktok})
+📺 YouTube: <a href="${SOCIAL_LINKS.youtube}">Subscribe</a>
+📘 Facebook: <a href="${SOCIAL_LINKS.facebook}">Follow</a>
+📷 Instagram: <a href="${SOCIAL_LINKS.instagram}">@homework_palette</a>
+📱 TikTok: <a href="${SOCIAL_LINKS.tiktok}">@homeworkpalette</a>
 💬 Telegram: You're already here!
 
-📱 App Store: [Download](${PRODUCT_LINKS.appStore})
-🌐 Site: [homework.chakriya.net](${PRODUCT_LINKS.marketingSite})
-🖼️ Poster: [Share](${PRODUCT_LINKS.poster})
-📊 Ops: [social.chakriya.net](${SOCIAL_LINKS.website})
-    `, Markup.inlineKeyboard([
+📱 App Store: <a href="${PRODUCT_LINKS.appStore}">Download</a>
+🌐 Site: <a href="${PRODUCT_LINKS.marketingSite}">homework.chakriya.net</a>
+🖼️ Poster: <a href="${PRODUCT_LINKS.poster}">Share</a>
+📊 Ops: <a href="${SOCIAL_LINKS.website}">social.chakriya.net</a>
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('📷 Instagram', SOCIAL_LINKS.instagram)],
+      [Markup.button.url('📱 TikTok', SOCIAL_LINKS.tiktok)],
       [Markup.button.url('💝 Support Us', DONATE_LINKS.buyMeACoffee)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
   bot.command('subscribe', (ctx) => {
-    const userName = ctx.from.first_name;
-    ctx.replyWithMarkdown(`
-✅ *Subscribed!*
+    const userName = escapeHtml(ctx.from.first_name || '');
+    replyHtml(ctx, `
+✅ <b>Subscribed!</b>
 
 Hey ${userName}, you'll receive notifications for:
 🔔 New YouTube uploads
-🔔 ${BRAND.name} updates
+🔔 ${escapeHtml(BRAND.name)} updates
 🔔 Special announcements
 
 To unsubscribe, use /unsubscribe
-    `);
+    `.trim());
   });
 
   bot.command('unsubscribe', (ctx) => {
-    ctx.replyWithMarkdown('🔕 You have been unsubscribed from notifications.');
+    ctx.reply('🔕 You have been unsubscribed from notifications.');
   });
 
   bot.command('help', (ctx) => {
     let msg = `
-📖 *Available Commands*
+📖 <b>Available Commands</b>
 
 🏠 /start — Welcome message
 📋 /menu — Interactive menu
 📺 /latest — Latest video uploads
 📚 /app — About Homework Palette
-✨ /features — Free & Palette Pro
+✨ /features — Free &amp; Palette Pro
 📱 /download — App Store link
 🛒 /products — App summary
 💝 /donate — Support our work
-🔗 /links — Social & website links
+🔗 /links — Social &amp; website links
 🔔 /subscribe — Get notifications
 🔕 /unsubscribe — Stop notifications
 ❓ /help — This help message`;
@@ -197,15 +199,15 @@ To unsubscribe, use /unsubscribe
     if (isAdmin(ctx)) {
       msg += `
 
-🔧 *Admin Commands*
+🔧 <b>Admin Commands</b>
 📡 /media — Media management menu
-📺 /yt\\_info · /yt\\_desc · /yt\\_alerts
-📘 /fb\\_info · /fb\\_about · /fb\\_desc · /fb\\_web
-💬 /tg\\_info · /tg\\_desc · /tg\\_short
-📷 /ig\\_info · 📱 /tk\\_info`;
+📺 /yt_info · /yt_desc · /yt_alerts
+📘 /fb_info · /fb_about · /fb_desc · /fb_web
+💬 /tg_info · /tg_desc · /tg_short
+📷 /ig_info · 📱 /tk_info`;
     }
 
-    ctx.replyWithMarkdown(msg.trim());
+    replyHtml(ctx, msg.trim());
   });
 }
 

@@ -1,5 +1,6 @@
 import { Markup } from 'telegraf';
 import { BRAND, SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
+import { escapeHtml, replyHtml } from '../reply.js';
 
 const backButton = Markup.inlineKeyboard([
   [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -33,16 +34,16 @@ export function registerHandlers(bot) {
 
   bot.action('menu_app', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown(`
-📚 *${BRAND.name}*
+    replyHtml(ctx, `
+📚 <b>${escapeHtml(BRAND.name)}</b>
 
-${BRAND.tagline}
+${escapeHtml(BRAND.tagline)}
 
 🆓 Free library, print, builder, read-aloud, lesson recorder
 ⭐ Palette Pro — in-app quizzes
 
-Publisher: ${BRAND.publisher}
-    `, Markup.inlineKeyboard([
+Publisher: ${escapeHtml(BRAND.publisher)}
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔔 Notify Me', 'notify_app')],
@@ -52,17 +53,17 @@ Publisher: ${BRAND.publisher}
 
   bot.action('menu_features', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown(`
-✨ *Features*
+    replyHtml(ctx, `
+✨ <b>Features</b>
 
 📚 Free grades 1–6 library
 🛠️ Worksheet builder
-🔊 Khmer & English read-aloud
+🔊 Khmer &amp; English read-aloud
 🎥 Lesson recorder with background finish
 ⭐ Palette Pro quizzes
 
 Use /features for the full list.
-    `, Markup.inlineKeyboard([
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 Get the app', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🖼️ Poster', PRODUCT_LINKS.poster)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -71,13 +72,13 @@ Use /features for the full list.
 
   bot.action('menu_download', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown(`
-📱 *Download ${BRAND.name}*
+    replyHtml(ctx, `
+📱 <b>Download ${escapeHtml(BRAND.name)}</b>
 
-Free on the App Store for iPhone & iPad.
+Free on the App Store for iPhone &amp; iPad.
 
-${PRODUCT_LINKS.appStore}
-    `, Markup.inlineKeyboard([
+${escapeHtml(PRODUCT_LINKS.appStore)}
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
       [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -86,14 +87,14 @@ ${PRODUCT_LINKS.appStore}
 
   bot.action('menu_donate', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown(`
-💝 *Support Our Work*
+    replyHtml(ctx, `
+💝 <b>Support Our Work</b>
 
-${BRAND.name} keeps the homework library free for families.
+${escapeHtml(BRAND.name)} keeps the homework library free for families.
 Every contribution helps us ship updates.
 
 Use /donate for all support options.
-    `, Markup.inlineKeyboard([
+    `.trim(), Markup.inlineKeyboard([
       [Markup.button.url('☕ Buy Me a Coffee', DONATE_LINKS.buyMeACoffee)],
       [Markup.button.url('🎯 GitHub Sponsors', DONATE_LINKS.githubSponsors)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -102,28 +103,25 @@ Use /donate for all support options.
 
   bot.action('menu_latest', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown(
-      '📺 Latest videos coming soon! Use /subscribe to get notified.',
-      backButton
-    );
+    ctx.reply('📺 Latest videos coming soon! Use /subscribe to get notified.', backButton);
   });
 
   bot.action('menu_links', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown(`
-🔗 *Follow Us:*
-📺 YouTube: ${SOCIAL_LINKS.youtube}
-📘 Facebook: ${SOCIAL_LINKS.facebook}
-📱 TikTok: ${SOCIAL_LINKS.tiktok}
-📷 Instagram: ${SOCIAL_LINKS.instagram}
-📱 App: ${PRODUCT_LINKS.appStore}
-🌐 Site: ${PRODUCT_LINKS.marketingSite}
-    `, backButton);
+    replyHtml(ctx, `
+🔗 <b>Follow Us:</b>
+📺 YouTube: <a href="${SOCIAL_LINKS.youtube}">Subscribe</a>
+📘 Facebook: <a href="${SOCIAL_LINKS.facebook}">Follow</a>
+📱 TikTok: <a href="${SOCIAL_LINKS.tiktok}">@homeworkpalette</a>
+📷 Instagram: <a href="${SOCIAL_LINKS.instagram}">@homework_palette</a>
+📱 App: <a href="${PRODUCT_LINKS.appStore}">App Store</a>
+🌐 Site: <a href="${PRODUCT_LINKS.marketingSite}">homework.chakriya.net</a>
+    `.trim(), backButton);
   });
 
   bot.action('menu_subscribe', (ctx) => {
     ctx.answerCbQuery('Subscribed! 🔔');
-    ctx.replyWithMarkdown(`✅ You're now subscribed to notifications, ${ctx.from.first_name}!`);
+    ctx.reply(`✅ You're now subscribed to notifications, ${ctx.from.first_name}!`);
   });
 
   bot.action('notify_app', (ctx) => {
