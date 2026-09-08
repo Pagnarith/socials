@@ -125,15 +125,37 @@ async function tgApi(method, body = {}) {
 
 async function updateTelegram() {
   section('Telegram bot');
-  for (const [method, body, label] of [
-    ['setMyName', { name: BRAND }, 'bot name'],
-    ['setMyShortDescription', { short_description: TG_BOT_SHORT }, 'short description'],
-    ['setMyDescription', { description: TG_BOT_LONG }, 'description'],
-    ['setMyCommands', { commands: TG_COMMANDS }, 'commands'],
-  ]) {
-    const r = await tgApi(method, body);
-    if (r.ok) ok(`${label}${DRY ? ' (dry-run)' : ''}`);
-    else fail(`${label}: ${JSON.stringify(r)}`);
+  // Set default + common language overrides (stale lang-specific bios can hide the default).
+  const locales = [undefined, 'en', 'km'];
+  for (const lang of locales) {
+    const label = lang || 'default';
+    for (const [method, body, field] of [
+      ['setMyName', { name: BRAND }, 'bot name'],
+      ['setMyShortDescription', { short_description: TG_BOT_SHORT }, 'short description'],
+      ['setMyDescription', { description: TG_BOT_LONG }, 'description'],
+    ]) {
+      const payload = lang ? { ...body, language_code: lang } : body;
+      // setMyName ignores language_code on some clients; still fine to omit for non-default.
+      if (method === 'setMyName' && lang) continue;
+      const r = await tgApi(method, payload);
+      if (r.ok) ok(`${field} [${label}]${DRY ? ' (dry-run)' : ''}`);
+      else fail(`${field} [${label}]: ${JSON.stringify(r)}`);
+    }
+  }
+
+  const cmd = await tgApi('setMyCommands', { commands: TG_COMMANDS });
+  if (cmd.ok) ok(`commands${DRY ? ' (dry-run)' : ''}`);
+  else fail(`commands: ${JSON.stringify(cmd)}`);
+
+  if (!DRY) {
+    const short = await tgApi('getMyShortDescription', {});
+    const long = await tgApi('getMyDescription', {});
+    const gotShort = short.result?.short_description || '';
+    const gotLong = long.result?.description || '';
+    if (gotShort === TG_BOT_SHORT) ok('verified short description');
+    else warn(`short mismatch after set: ${JSON.stringify(gotShort)}`);
+    if (gotLong === TG_BOT_LONG) ok('verified description');
+    else warn(`description mismatch after set: ${JSON.stringify(gotLong)}`);
   }
 
   section('Telegram channel');
@@ -334,7 +356,7 @@ async function main() {
   }
   printTikTokManual();
   section('Done');
-  console.log('  Review each app/page. Handles (@iprickypagnarith etc.) stay until you rename them in-app.');
+  console.log('  Review each app/page. Instagram: @homework_palette · TikTok: @homeworkpalette');
 }
 
 main().catch((e) => {

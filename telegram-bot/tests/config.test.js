@@ -39,6 +39,11 @@ describe('config', () => {
     expect(REVENUE_STREAMS.products.name).toBe('App Store');
   });
 
+  it('points Instagram and TikTok at Homework Palette handles', () => {
+    expect(SOCIAL_LINKS.instagram).toBe('https://www.instagram.com/homework_palette/');
+    expect(SOCIAL_LINKS.tiktok).toBe('https://www.tiktok.com/@homeworkpalette');
+  });
+
   it('social and product links are valid URLs', () => {
     for (const url of [...Object.values(SOCIAL_LINKS), ...Object.values(PRODUCT_LINKS)]) {
       expect(() => new URL(url)).not.toThrow();

@@ -52,3 +52,5 @@ See [`docs/platform-bios.md`](../../docs/platform-bios.md).
 | Site | https://homework.chakriya.net/ |
 | Poster | https://homework.chakriya.net/poster.html |
 | Ops | https://social.chakriya.net |
+| Instagram | https://www.instagram.com/homework_palette/ |
+| TikTok | https://www.tiktok.com/@homeworkpalette |

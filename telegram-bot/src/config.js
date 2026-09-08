@@ -11,8 +11,8 @@ export const BRAND = {
 export const SOCIAL_LINKS = {
   youtube: 'https://www.youtube.com/channel/UC3yMwRX2Cz-08IRrS9tIHYg',
   facebook: 'https://www.facebook.com/chakriyanet',
-  instagram: 'https://www.instagram.com/iprickypagnarith/',
-  tiktok: 'https://www.tiktok.com/@iprickypagnarith',
+  instagram: 'https://www.instagram.com/homework_palette/',
+  tiktok: 'https://www.tiktok.com/@homeworkpalette',
   // Ops dashboard (GitHub Pages)
   website: 'https://social.chakriya.net',
 };

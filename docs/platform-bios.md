@@ -13,7 +13,7 @@ npm run rebrand:socials
 
 | Surface | Status |
 |---------|--------|
-| Telegram bot name + bios + commands | Updated via API |
+| Telegram bot name + bios + commands | Updated via API (default + `en`/`km` overrides; re-verify with `getMyDescription`) |
 | Telegram channel title + description | Updated via API |
 | Facebook about / description / website | Updated via API |
 | Facebook **Page name** | Manual — Meta app lacks rename capability (#3) |
@@ -25,14 +25,14 @@ npm run rebrand:socials
 
 ## Display names
 
-| Platform | Name |
-|----------|------|
-| YouTube | Homework Palette |
-| Facebook | Homework Palette |
-| Instagram | Homework Palette |
-| TikTok | Homework Palette |
-| Telegram bot | Homework Palette |
-| Telegram channel | Homework Palette |
+| Platform | Name | Handle / URL |
+|----------|------|--------------|
+| YouTube | Homework Palette | existing channel |
+| Facebook | Homework Palette | facebook.com/chakriyanet |
+| Instagram | Homework Palette | [@homework_palette](https://www.instagram.com/homework_palette/) |
+| TikTok | Homework Palette | [@homeworkpalette](https://www.tiktok.com/@homeworkpalette) |
+| Telegram bot | Homework Palette | @chakriyanet_bot |
+| Telegram channel | Homework Palette | channel id in `.env` |
 
 ---
 
