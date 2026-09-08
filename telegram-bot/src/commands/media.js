@@ -97,13 +97,14 @@ async function tgApiCall(method, body = {}) {
 }
 
 // ─── Bios for platforms that can't auto-update ──────────────
-const IG_BIO = `🎮 Minecraft Add-ons | 🏗️ Rhino 3D
-Building for Microsoft Marketplace
-Tutorials • Tips • Creations
-🔗 social.chakriya.net`;
+const IG_BIO = `📚 Homework Palette
+Grade 1–6 homework for families
+Khmer & English • Free on App Store
+🔗 homework.chakriya.net`;
 
-const TK_BIO = `🎮 Minecraft Add-ons • 🏗️ Rhino 3D
-Tutorials & creations ⚡`;
+const TK_BIO = `📚 Homework Palette
+Grades 1–6 • Khmer & English
+Free on the App Store 📱`;
 
 // ═════════════════════════════════════════════════════════════
 //  Register all /media commands

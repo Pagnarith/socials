@@ -59,7 +59,7 @@ export async function createVideoRecord(video) {
     cr_title: video.title,
     cr_description: video.description,
     cr_platform: video.platform, // youtube, tiktok, facebook
-    cr_category: video.category, // minecraft, rhino3d
+    cr_category: video.category, // app, homework, parenting, general
     cr_status: video.status || 'draft', // draft, scheduled, published
     cr_scheduleddate: video.scheduledDate,
     cr_publisheddate: video.publishedDate,
@@ -95,7 +95,7 @@ export async function createSubscriber(subscriber) {
     cr_username: subscriber.username,
     cr_subscribedat: new Date().toISOString(),
     cr_isactive: true,
-    cr_notifymcrelease: subscriber.notifyMinecraft || false,
+    cr_notifyapprelease: subscriber.notifyApp || false,
     cr_notifynewvideo: subscriber.notifyVideo || true,
   });
 }

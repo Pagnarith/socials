@@ -1,7 +1,8 @@
 {
-  "name": "socials-dashboard",
+  "name": "homework-palette-dashboard",
   "version": "1.0.0",
   "private": true,
+  "description": "Homework Palette social ops dashboard",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

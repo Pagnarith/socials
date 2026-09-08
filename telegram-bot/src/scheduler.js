@@ -38,13 +38,13 @@ function dailyScheduleMessage() {
   const dateParts = getCambodiaDateParts();
   const weekday = dateParts.weekday;
   const scheduleMap = {
-    Sun: '📅 Sunday: Rest day — plan next week\'s content!',
-    Mon: '📅 Monday: Post a Minecraft screenshot tip on Facebook & TikTok Rhino 3D speed model',
-    Tue: '📅 Tuesday: Upload Minecraft Add-on video to YouTube!',
-    Wed: '📅 Wednesday: Post Rhino 3D tutorial on Facebook & quick TikTok tip',
-    Thu: '📅 Thursday: Upload Rhino 3D tutorial to YouTube!',
-    Fri: '📅 Friday: Engagement posts on Facebook & trending TikTok',
-    Sat: '📅 Saturday: Minecraft dev stream + highlight reel',
+    Sun: '📅 Sunday: Rest day — plan next week\'s Homework Palette posts!',
+    Mon: '📅 Monday: Parent tip Reel on Facebook & TikTok (Khmer + English homework)',
+    Tue: '📅 Tuesday: Upload Homework Palette app demo to YouTube!',
+    Wed: '📅 Wednesday: Feature highlight on Facebook & short TikTok tip',
+    Thu: '📅 Thursday: Upload lesson-recorder walkthrough to YouTube!',
+    Fri: '📅 Friday: Engagement posts + App Store CTA on Facebook & TikTok',
+    Sat: '📅 Saturday: Bilingual family homework clip + poster share',
   };
   const cambodiaDateLabel = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 
@@ -85,9 +85,10 @@ Review your progress:
 📺 YouTube: Subscribers? Watch hours?
 📘 Facebook: Page followers? Minutes viewed?
 📱 TikTok: Followers? Avg views?
+📱 App Store: Homework Palette downloads & Palette Pro?
 💰 Revenue: Any earnings this month?
 
-Update your financial tracker in the dashboard!
+Update your tracker in the social ops dashboard!
     `;
 }
 
@@ -99,19 +100,21 @@ async function sendScheduledMessage(bot, message) {
 function inferVideoPlatform(title = '') {
   const normalizedTitle = title.toLowerCase();
 
-  if (normalizedTitle.includes('rhino') || normalizedTitle.includes('3d')) {
-    return 'rhino';
-  }
-
-  if (normalizedTitle.includes('minecraft') || normalizedTitle.includes('add-on') || normalizedTitle.includes('addon')) {
-    return 'minecraft';
+  if (
+    normalizedTitle.includes('homework') ||
+    normalizedTitle.includes('palette') ||
+    normalizedTitle.includes('recorder') ||
+    normalizedTitle.includes('quiz') ||
+    normalizedTitle.includes('parent')
+  ) {
+    return 'homework';
   }
 
   return 'youtube';
 }
 
 export async function sendNewVideoAlert(bot, title, url, platform = 'youtube') {
-  const emoji = platform === 'minecraft' ? '🎮' : platform === 'rhino' ? '🖥️' : '📺';
+  const emoji = platform === 'homework' ? '📚' : '📺';
   const message = `
 🔔 *New Video Alert!*
 
@@ -120,6 +123,7 @@ ${emoji} *${title}*
 ▶️ Watch now: ${url}
 
 Don't forget to like, comment & share! 🙌
+Get Homework Palette: https://apps.apple.com/app/id6801068446
     `;
 
   return sendScheduledMessage(bot, message);

@@ -9,7 +9,7 @@
 | cr_title | Text (200) | Video title |
 | cr_description | Text (2000) | Video description |
 | cr_platform | Choice | youtube, tiktok, facebook |
-| cr_category | Choice | minecraft, rhino3d, general |
+| cr_category | Choice | app, homework, parenting, general |
 | cr_status | Choice | draft, scheduled, recording, editing, published |
 | cr_scheduleddate | DateTime | Planned publish date |
 | cr_publisheddate | DateTime | Actual publish date |
@@ -31,7 +31,7 @@
 | cr_username | Text (100) | Telegram username |
 | cr_subscribedat | DateTime | Subscription date |
 | cr_isactive | Boolean | Active subscription |
-| cr_notifymcrelease | Boolean | Notify on Minecraft Add-on release |
+| cr_notifyapprelease | Boolean | Notify on Homework Palette updates |
 | cr_notifynewvideo | Boolean | Notify on new video upload |
 
 ## Table: Revenue (cr_revenues)
@@ -39,8 +39,8 @@
 | Column | Type | Description |
 |--------|------|-------------|
 | cr_revenueid | GUID (PK) | Auto-generated |
-| cr_platform | Choice | youtube, facebook, tiktok, minecraft_marketplace |
-| cr_source | Choice | ads, membership, sponsorship, marketplace_sale, creator_fund, gifts |
+| cr_platform | Choice | youtube, facebook, tiktok, app_store |
+| cr_source | Choice | ads, membership, sponsorship, subscription, creator_fund, gifts |
 | cr_amount | Decimal | Revenue amount |
 | cr_currency | Text (3) | Currency code (USD) |
 | cr_date | DateTime | Revenue date |
@@ -51,7 +51,7 @@
 | Column | Type | Description |
 |--------|------|-------------|
 | cr_analyticssnaphotid | GUID (PK) | Auto-generated |
-| cr_platform | Choice | youtube, facebook, tiktok, telegram |
+| cr_platform | Choice | youtube, facebook, tiktok, telegram, app_store |
 | cr_date | DateTime | Snapshot date |
 | cr_followers | Integer | Follower/subscriber count |
 | cr_totalviews | Integer | Total view count |
@@ -66,7 +66,7 @@
 | cr_contentscheduleid | GUID (PK) | Auto-generated |
 | cr_title | Text (200) | Content title |
 | cr_platform | Choice | youtube, facebook, tiktok |
-| cr_category | Choice | minecraft, rhino3d, general |
+| cr_category | Choice | app, homework, parenting, general |
 | cr_scheduleddate | DateTime | Planned date |
 | cr_status | Choice | planned, in-progress, recorded, edited, published |
 | cr_notes | Text (2000) | Additional notes |

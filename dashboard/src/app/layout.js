@@ -4,20 +4,20 @@ import { Footer } from '../components/Footer';
 import { DarkModeToggle } from '../components/DarkModeToggle';
 
 export const metadata = {
-  title: 'Socials Dashboard — Digital Financial Plan',
-  description: 'Manage your multi-platform content strategy for Minecraft & Rhino 3D',
+  title: 'Homework Palette — Social Ops',
+  description: 'Multi-platform content ops for Homework Palette (grades 1–6 homework for families)',
   metadataBase: new URL('https://social.chakriya.net'),
   openGraph: {
-    title: 'Socials Dashboard — Digital Financial Plan',
-    description: 'Multi-platform content management hub for Minecraft Add-ons & Rhino 3D tutorials',
+    title: 'Homework Palette — Social Ops',
+    description: 'Content calendar, revenue tracking, and platform ops for Homework Palette',
     url: 'https://social.chakriya.net',
-    siteName: 'Socials Dashboard',
+    siteName: 'Homework Palette Social Ops',
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: 'Socials Dashboard',
-    description: 'Multi-platform content management hub for Minecraft Add-ons & Rhino 3D tutorials',
+    title: 'Homework Palette — Social Ops',
+    description: 'Content calendar, revenue tracking, and platform ops for Homework Palette',
   },
   icons: {
     icon: '/favicon.svg',

@@ -7,14 +7,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        minecraft: {
-          green: '#5B8731',
-          dark: '#3B5B1F',
-          dirt: '#8B6914',
-        },
-        rhino: {
-          blue: '#1E90FF',
-          dark: '#0066CC',
+        palette: {
+          DEFAULT: '#7f77dd',
+          dark: '#534ab7',
+          soft: '#f3f1fb',
         },
         youtube: '#FF0000',
         facebook: '#1877F2',

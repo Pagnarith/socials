@@ -1,7 +1,7 @@
 {
   "name": "socials-telegram-bot",
   "version": "1.0.0",
-  "description": "Telegram bot for automated messaging and subscriber engagement",
+  "description": "Telegram bot for Homework Palette social ops, reminders, and bios",
   "main": "src/bot.js",
   "type": "module",
   "scripts": {

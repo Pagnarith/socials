@@ -1,156 +1,133 @@
 import { Markup } from 'telegraf';
-import { SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
+import { BRAND, SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
 import { isAdmin } from '../admin.js';
 
 export function registerCommands(bot) {
-  // /start — Welcome message
   bot.start((ctx) => {
     const welcomeMessage = `
-🎮 Welcome to *iPricky Pagnarith Bot*!
+📚 Welcome to *${BRAND.name} Bot*!
 
-I'm your creative assistant for Minecraft Add-ons & Rhino 3D content.
+${BRAND.tagline}
+
+Publisher: ${BRAND.publisher}
 
 🔹 /menu — Main menu
 🔹 /latest — Latest video
-🔹 /minecraft — Minecraft Add-on info
-🔹 /rhino3d — Rhino 3D plugins & tutorials
-🔹 /products — Our products & plugins
-🔹 /links — All social media links
+🔹 /app — About the app
+🔹 /features — Free & Palette Pro
+🔹 /download — App Store link
+🔹 /links — Social & website links
 🔹 /donate — Support our work
 🔹 /subscribe — Get notified for new content
-🔹 /media — 📡 Manage all social media (admin)
+🔹 /media — Manage social media (admin)
 🔹 /help — All commands
 
-Visit: ${SOCIAL_LINKS.website}
-Handle: @PagnarithImphan
-
-Stay creative! 🎨
+App: ${PRODUCT_LINKS.marketingSite}
+Ops: ${SOCIAL_LINKS.website}
     `;
     ctx.replyWithMarkdown(welcomeMessage.trim(), mainMenuKeyboard());
   });
 
-  // /menu — Interactive main menu
   bot.command('menu', (ctx) => {
     ctx.reply('Choose a category:', mainMenuKeyboard());
   });
 
-  // /latest — Latest video info
   bot.command('latest', (ctx) => {
     ctx.replyWithMarkdown(`
 📺 *Latest Videos*
 
-🎮 *Minecraft:* Coming soon — stay tuned!
-🖥️ *Rhino 3D:* Coming soon — stay tuned!
+📚 *Homework Palette* demos, parent tips, and lesson-recorder clips — coming soon.
 
 Subscribe with /subscribe to get notified when new videos drop!
+Get the app: ${PRODUCT_LINKS.appStore}
     `);
   });
 
-  // /minecraft — Minecraft Add-on info
-  bot.command('minecraft', (ctx) => {
+  bot.command('app', (ctx) => {
     ctx.replyWithMarkdown(`
-🎮 *Minecraft Add-ons*
+📚 *${BRAND.name}*
 
-We create custom Add-ons for Minecraft Bedrock Edition!
+Native iPhone & iPad homework app for grades 1–6.
+Built for families — Khmer & English.
 
-📦 *Available Add-ons:*
-• YuttTools — Helper Robot companion (craftable, tameable, dig/build modes)
+🆓 *Free:* library, print, worksheet builder, read-aloud, lesson recorder
+⭐ *Palette Pro:* in-app quizzes with scores & progress
 
-🛒 *Marketplace:* Coming soon to the Microsoft Minecraft Marketplace.
-🆓 *Free:* All Minecraft Add-ons are free for the community!
-
-📺 *Tutorials:* Watch our YouTube channel for Add-on demos and development tutorials.
-
-Use /products to see all our products!
+🌐 ${PRODUCT_LINKS.marketingSite}
+📱 ${PRODUCT_LINKS.appStore}
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🎬 YouTube Channel', SOCIAL_LINKS.youtube)],
-      [Markup.button.callback('🔔 Notify Me on Release', 'notify_minecraft')],
+      [Markup.button.url('📱 Download on the App Store', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🌐 homework.chakriya.net', PRODUCT_LINKS.marketingSite)],
+      [Markup.button.callback('🔔 Notify Me on Updates', 'notify_app')],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  // /rhino3d — Rhino 3D plugins & tutorials
-  bot.command('rhino3d', (ctx) => {
+  bot.command('features', (ctx) => {
     ctx.replyWithMarkdown(`
-🖥️ *Rhino 3D — Plugins & Tutorials*
+✨ *${BRAND.name} — Features*
 
-Professional plugins and tutorials for Rhinoceros 3D!
+📚 *Free library* — 100 exercises per grade, browse & print
+🛠️ *Builder* — photos, voice notes, custom worksheets
+🔊 *Read-aloud* — offline Khmer & English
+🎥 *Lesson recorder* — screen + optional face/mic; finishes in the background
+🔔 *Video ready* — optional notification when export completes
+⭐ *Palette Pro* — in-app quizzes & progress
 
-🔌 *Our Plugins (for sale):*
-Enterprise-quality Rhino plugins built with clean architecture:
-• Event-driven automation
-• Geometry tools & surface operations
-• Block management & navigation
-• And more — see /products for the full catalog
-
-📚 *Tutorial Series:*
-1. Getting Started with Rhino 3D
-2. Curves & Surfaces Basics
-3. Product Design Workflows
-4. Grasshopper Parametric Design
-5. Plugin Development with C#
-
-Browse plugins: ${PRODUCT_LINKS.rhinoStore}
+Poster for sharing: ${PRODUCT_LINKS.poster}
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🛒 Browse Plugins', PRODUCT_LINKS.rhinoStore)],
-      [Markup.button.url('🎬 YouTube Tutorials', SOCIAL_LINKS.youtube)],
-      [Markup.button.url('📱 TikTok Tips', SOCIAL_LINKS.tiktok)],
+      [Markup.button.url('📱 Get the app', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🖼️ Share poster', PRODUCT_LINKS.poster)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  // /products — All products & plugins
+  bot.command('download', (ctx) => {
+    ctx.replyWithMarkdown(`
+📱 *Download ${BRAND.name}*
+
+Free on the App Store — grades 1–6 homework for families.
+
+${PRODUCT_LINKS.appStore}
+
+Site: ${PRODUCT_LINKS.marketingSite}
+    `, Markup.inlineKeyboard([
+      [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
+      [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
+    ]));
+  });
+
+  // Keep /products as alias → download/app summary
   bot.command('products', (ctx) => {
     ctx.replyWithMarkdown(`
-🛒 *Our Products*
+🛒 *${BRAND.name}*
 
-We build tools for creators and designers.
+📱 Free on the App Store (id 6801068446)
+⭐ Palette Pro unlocks in-app quizzes
 
-━━━ *FREE Products* ━━━
-🎮 *Minecraft Add-ons*
-• YuttTools — Helper Robot companion
-• More add-ons coming soon
-📥 Free on Microsoft Marketplace
+🌐 ${PRODUCT_LINKS.marketingSite}
+🖼️ Poster: ${PRODUCT_LINKS.poster}
 
-━━━ *PAID Products* ━━━
-🖥️ *Rhino 3D Plugins*
-Professional-grade plugins for Rhinoceros 3D:
-• Geometry & surface tools
-• Block management suite
-• Automation & workflow plugins
-• Plugin bundle available
-💰 Starting from $19
-
-━━━ *Where to Buy* ━━━
-🔗 food4Rhino: Official Rhino marketplace
-🔗 Gumroad: Direct digital download
-🔗 Website: ${PRODUCT_LINKS.productsPage}
-
-Love our free content? /donate to support us! 💝
+Love the free library? /donate to support development.
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🦏 food4Rhino Store', PRODUCT_LINKS.rhinoStore)],
-      [Markup.button.url('🛍️ Gumroad Store', PRODUCT_LINKS.gumroad)],
-      [Markup.button.url('🌐 Products Page', PRODUCT_LINKS.productsPage)],
+      [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  // /donate — Support & donation links
   bot.command('donate', (ctx) => {
     ctx.replyWithMarkdown(`
-💝 *Support Our Work*
+💝 *Support ${BRAND.name}*
 
-Our Minecraft Add-ons and tutorials are free for everyone. Your support helps us keep creating!
+The grade 1–6 library, builder, read-aloud, and lesson recorder stay free.
+Your support helps us keep shipping updates for families.
 
 ☕ *Buy Me a Coffee* — One-time support
 🎯 *GitHub Sponsors* — Monthly sponsorship
-🎨 *Patreon* — Exclusive content & early access
-💬 *YouTube Super Chat* — Support during live streams
-
-Every contribution helps us:
-• Build more free Minecraft Add-ons
-• Create better Rhino 3D tutorials
-• Keep our tools free & updated
+🎨 *Patreon* — Exclusive updates & early access
+💬 *YouTube Super Chat* — Support during streams
 
 Thank you for being part of the community! 🙏
     `, Markup.inlineKeyboard([
@@ -161,50 +138,45 @@ Thank you for being part of the community! 🙏
     ]));
   });
 
-  // /links — All social media links
   bot.command('links', (ctx) => {
     ctx.replyWithMarkdown(`
-🔗 *Our Social Media*
+🔗 *Links*
 
-📺 YouTube: [Subscribe here](${SOCIAL_LINKS.youtube})
-📘 Facebook: [Follow our page](${SOCIAL_LINKS.facebook})
-📷 Instagram: [Follow us](${SOCIAL_LINKS.instagram})
-📱 TikTok: [Follow us](${SOCIAL_LINKS.tiktok})
-💬 Telegram: You're already here! 🎉
+📺 YouTube: [Subscribe](${SOCIAL_LINKS.youtube})
+📘 Facebook: [Follow](${SOCIAL_LINKS.facebook})
+📷 Instagram: [Follow](${SOCIAL_LINKS.instagram})
+📱 TikTok: [Follow](${SOCIAL_LINKS.tiktok})
+💬 Telegram: You're already here!
 
-🛒 *Shop:*
-🦏 Rhino Plugins: [food4Rhino](${PRODUCT_LINKS.rhinoStore})
-🛍️ Digital Store: [Gumroad](${PRODUCT_LINKS.gumroad})
-🌐 Website: [chakriya.net](${PRODUCT_LINKS.productsPage})
+📱 App Store: [Download](${PRODUCT_LINKS.appStore})
+🌐 Site: [homework.chakriya.net](${PRODUCT_LINKS.marketingSite})
+🖼️ Poster: [Share](${PRODUCT_LINKS.poster})
+📊 Ops: [social.chakriya.net](${SOCIAL_LINKS.website})
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🛒 Products', PRODUCT_LINKS.productsPage)],
+      [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
       [Markup.button.url('💝 Support Us', DONATE_LINKS.buyMeACoffee)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  // /subscribe — Toggle notification subscription
   bot.command('subscribe', (ctx) => {
     const userName = ctx.from.first_name;
     ctx.replyWithMarkdown(`
-✅ *Subscribed!* 
+✅ *Subscribed!*
 
 Hey ${userName}, you'll receive notifications for:
-🔔 New YouTube video uploads
-🔔 Minecraft Add-on releases
-🔔 Rhino plugin updates
+🔔 New YouTube uploads
+🔔 ${BRAND.name} updates
 🔔 Special announcements
 
 To unsubscribe, use /unsubscribe
     `);
   });
 
-  // /unsubscribe
   bot.command('unsubscribe', (ctx) => {
     ctx.replyWithMarkdown('🔕 You have been unsubscribed from notifications.');
   });
 
-  // /help — All available commands
   bot.command('help', (ctx) => {
     let msg = `
 📖 *Available Commands*
@@ -212,11 +184,12 @@ To unsubscribe, use /unsubscribe
 🏠 /start — Welcome message
 📋 /menu — Interactive menu
 📺 /latest — Latest video uploads
-🎮 /minecraft — Minecraft Add-on info
-🖥️ /rhino3d — Rhino 3D plugins & tutorials
-🛒 /products — Our products catalog
+📚 /app — About Homework Palette
+✨ /features — Free & Palette Pro
+📱 /download — App Store link
+🛒 /products — App summary
 💝 /donate — Support our work
-🔗 /links — Social media & store links
+🔗 /links — Social & website links
 🔔 /subscribe — Get notifications
 🔕 /unsubscribe — Stop notifications
 ❓ /help — This help message`;
@@ -239,11 +212,11 @@ To unsubscribe, use /unsubscribe
 function mainMenuKeyboard() {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('🎮 Minecraft', 'menu_minecraft'),
-      Markup.button.callback('🖥️ Rhino 3D', 'menu_rhino3d'),
+      Markup.button.callback('📚 About App', 'menu_app'),
+      Markup.button.callback('✨ Features', 'menu_features'),
     ],
     [
-      Markup.button.callback('🛒 Products', 'menu_products'),
+      Markup.button.callback('📱 Download', 'menu_download'),
       Markup.button.callback('📺 Latest Video', 'menu_latest'),
     ],
     [

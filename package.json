@@ -1,7 +1,7 @@
 {
-  "name": "socials-digital-financial-plan",
+  "name": "homework-palette-socials",
   "version": "1.0.0",
-  "description": "Multi-platform content management hub for Minecraft & Rhino 3D creators",
+  "description": "Multi-platform social ops hub for Homework Palette (grades 1–6 homework for families)",
   "private": true,
   "type": "module",
   "engines": {
@@ -26,8 +26,8 @@
     "dotenv": "^16.0.0"
   },
   "keywords": [
-    "minecraft",
-    "rhino3d",
+    "homework-palette",
+    "edtech",
     "youtube",
     "facebook",
     "tiktok",

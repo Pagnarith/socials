@@ -40,14 +40,14 @@ const milestones = [
     color: 'border-gray-300 dark:border-gray-600',
   },
   {
-    platform: 'Minecraft Marketplace',
-    icon: '🎮',
+    platform: 'App Store',
+    icon: '📚',
     requirements: [
-      { label: 'Complete Add-on package', current: 0, target: 1, unit: 'packages' },
-      { label: 'Microsoft Partner enrollment', current: 0, target: 1, unit: 'status' },
+      { label: 'Homework Palette downloads', current: 0, target: 1000, unit: 'downloads' },
+      { label: 'Palette Pro subscribers', current: 0, target: 50, unit: 'subs' },
     ],
-    reward: 'Sell Add-ons on Microsoft Minecraft Store',
-    color: 'border-green-300 dark:border-green-700',
+    reward: 'Sustainable App Store growth for free library + Pro quizzes',
+    color: 'border-violet-300 dark:border-violet-700',
   },
 ];
 
@@ -69,15 +69,13 @@ export function MilestoneTracker() {
               </span>
             </div>
 
-            {/* Overall progress bar */}
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
               <div
-                className="bg-green-500 h-2 rounded-full transition-all"
+                className="bg-violet-500 h-2 rounded-full transition-all"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
 
-            {/* Individual requirements */}
             <div className="space-y-3">
               {milestone.requirements.map((req, i) => {
                 const progress = Math.min((req.current / req.target) * 100, 100);
@@ -89,7 +87,7 @@ export function MilestoneTracker() {
                     </div>
                     <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                       <div
-                        className="bg-blue-400 h-1.5 rounded-full"
+                        className="bg-violet-400 h-1.5 rounded-full"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
@@ -98,7 +96,6 @@ export function MilestoneTracker() {
               })}
             </div>
 
-            {/* Reward */}
             <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 🏆 <span className="font-medium">{milestone.reward}</span>

@@ -17,7 +17,7 @@ export function createBot() {
 
   const bot = new Telegraf(token);
 
-  bot.botInfo = { username: 'SocialsCreatorBot' };
+  bot.botInfo = { username: 'HomeworkPaletteBot' };
 
   registerCommands(bot);
   registerMediaCommands(bot);

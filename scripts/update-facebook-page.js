@@ -53,9 +53,9 @@ async function updateField(pageToken, field, value) {
 
 async function main() {
   console.log('Reading inputs...');
-  const about = process.env.FACEBOOK_PAGE_ABOUT || 'iPricky Pagnarith — Minecraft Add-ons & Rhino 3D tutorials. Website: https://social.chakriya.net';
+  const about = process.env.FACEBOOK_PAGE_ABOUT || 'Homework Palette — grade 1–6 homework for families (Khmer & English). Free on the App Store. https://homework.chakriya.net/';
   const description = process.env.FACEBOOK_PAGE_DESCRIPTION || readFacebookBioFromDocs() || about;
-  const website = process.env.FACEBOOK_PAGE_WEBSITE || 'https://social.chakriya.net';
+  const website = process.env.FACEBOOK_PAGE_WEBSITE || 'https://homework.chakriya.net/';
 
   try {
     console.log('Requesting page-scoped token...');

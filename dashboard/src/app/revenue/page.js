@@ -8,38 +8,34 @@ const revenueStreams = [
   { platform: 'Instagram', source: 'Branded Content', current: 0, target: 20 },
   { platform: 'TikTok', source: 'Creativity Program', current: 0, target: 30 },
   { platform: 'TikTok', source: 'Brand Deals', current: 0, target: 50 },
-  { platform: 'Minecraft', source: 'Marketplace Sales', current: 0, target: 200 },
+  { platform: 'App Store', source: 'Palette Pro subscriptions', current: 0, target: 200 },
 ];
 
 const phases = [
-  { name: 'Phase 1 (M1-3)', label: 'Foundation', revenue: '$0', description: 'Build audience, set up all platforms, create initial content library.' },
-  { name: 'Phase 2 (M3-6)', label: 'Early Growth', revenue: '$25–50/mo', description: 'TikTok monetization, first affiliate income, growing subscriber base.' },
-  { name: 'Phase 3 (M6-12)', label: 'Monetization', revenue: '$145–480/mo', description: 'YouTube Partner Program, Facebook In-Stream Ads, Instagram Reels bonus.' },
-  { name: 'Phase 4 (M12-18)', label: 'Scale', revenue: '$530–1,950/mo', description: 'Brand deals, Minecraft Marketplace sales, sponsorship income.' },
-  { name: 'Phase 5 (M18-24)', label: 'Authority', revenue: '$1,700–5,000/mo', description: 'Full monetization across all platforms, premium content, community products.' },
+  { name: 'Phase 1 (M1-3)', label: 'Foundation', revenue: '$0', description: 'Ship App Store presence, set up all platforms, publish first demos and parent tips.' },
+  { name: 'Phase 2 (M3-6)', label: 'Early Growth', revenue: '$25–50/mo', description: 'TikTok/Reels growth, first App Store traction, growing subscriber base.' },
+  { name: 'Phase 3 (M6-12)', label: 'Monetization', revenue: '$145–480/mo', description: 'YouTube Partner Program, Facebook In-Stream Ads, early Palette Pro subscriptions.' },
+  { name: 'Phase 4 (M12-18)', label: 'Scale', revenue: '$530–1,950/mo', description: 'Brand deals, stronger Palette Pro conversion, sponsorship income.' },
+  { name: 'Phase 5 (M18-24)', label: 'Authority', revenue: '$1,700–5,000/mo', description: 'Full monetization across social + App Store, premium content for families.' },
 ];
 
 const monthlyLog = [
-  { month: 'Mar 2026', youtube: 0, facebook: 0, instagram: 0, tiktok: 0, minecraft: 0, total: 0 },
+  { month: 'Mar 2026', youtube: 0, facebook: 0, instagram: 0, tiktok: 0, appStore: 0, total: 0 },
 ];
 
 export default function RevenuePage() {
   const totalCurrent = revenueStreams.reduce((s, r) => s + r.current, 0);
   const totalTarget = revenueStreams.reduce((s, r) => s + r.target, 0);
 
-  const platformTotals = revenueStreams.reduce((acc, r) => {
-    acc[r.platform] = (acc[r.platform] || 0) + r.current;
-    return acc;
-  }, {});
-
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Revenue</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Financial tracking and monetization roadmap</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Social monetization + Homework Palette App Store tracking
+        </p>
       </div>
 
-      {/* Revenue Summary */}
       <section className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
@@ -48,13 +44,13 @@ export default function RevenuePage() {
           </div>
           <div className="text-left sm:text-right">
             <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Target</p>
-            <p className="text-2xl font-semibold text-green-600 dark:text-green-400">${totalTarget.toFixed(2)}</p>
+            <p className="text-2xl font-semibold text-violet-600 dark:text-violet-400">${totalTarget.toFixed(2)}</p>
           </div>
         </div>
 
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-2">
           <div
-            className="bg-green-500 h-4 rounded-full transition-all flex items-center justify-center text-xs text-white font-medium"
+            className="bg-violet-500 h-4 rounded-full transition-all flex items-center justify-center text-xs text-white font-medium"
             style={{ width: `${Math.max(Math.min((totalCurrent / totalTarget) * 100, 100), 0)}%` }}
           >
             {totalTarget > 0 ? `${((totalCurrent / totalTarget) * 100).toFixed(0)}%` : ''}
@@ -63,7 +59,6 @@ export default function RevenuePage() {
         <p className="text-xs text-gray-500 dark:text-gray-400">${totalCurrent} of ${totalTarget} monthly target</p>
       </section>
 
-      {/* Revenue Streams Breakdown */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Revenue Streams</h2>
         <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden">
@@ -88,7 +83,7 @@ export default function RevenuePage() {
                     <td className="py-3 px-4 text-right text-gray-500 dark:text-gray-400">${stream.target}</td>
                     <td className="py-3 px-4 text-right hidden sm:table-cell">
                       <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2 ml-auto">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
+                        <div className="bg-violet-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                     </td>
                   </tr>
@@ -107,7 +102,6 @@ export default function RevenuePage() {
         </div>
       </section>
 
-      {/* Financial Roadmap */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Financial Roadmap</h2>
         <div className="space-y-4">
@@ -116,14 +110,14 @@ export default function RevenuePage() {
               <div className="sm:w-48 flex-shrink-0">
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{phase.name}</span>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{phase.label}</p>
-                <p className="text-sm font-semibold text-green-600 dark:text-green-400">{phase.revenue}</p>
+                <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">{phase.revenue}</p>
               </div>
               <div className="flex-1">
                 <p className="text-sm text-gray-600 dark:text-gray-400">{phase.description}</p>
               </div>
               <div className="flex-shrink-0 self-center">
                 {i === 0 ? (
-                  <span className="text-xs px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 font-medium">Current Phase</span>
+                  <span className="text-xs px-3 py-1 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200 font-medium">Current Phase</span>
                 ) : (
                   <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 font-medium">Upcoming</span>
                 )}
@@ -133,7 +127,6 @@ export default function RevenuePage() {
         </div>
       </section>
 
-      {/* Monthly Revenue Log */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Monthly Revenue Log</h2>
         <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-5 overflow-x-auto">
@@ -145,7 +138,7 @@ export default function RevenuePage() {
                 <th className="text-right py-2 px-3">Facebook</th>
                 <th className="text-right py-2 px-3">Instagram</th>
                 <th className="text-right py-2 px-3">TikTok</th>
-                <th className="text-right py-2 px-3">Minecraft</th>
+                <th className="text-right py-2 px-3">App Store</th>
                 <th className="text-right py-2 pl-3 font-semibold">Total</th>
               </tr>
             </thead>
@@ -157,7 +150,7 @@ export default function RevenuePage() {
                   <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-400">${row.facebook}</td>
                   <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-400">${row.instagram}</td>
                   <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-400">${row.tiktok}</td>
-                  <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-400">${row.minecraft}</td>
+                  <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-400">${row.appStore}</td>
                   <td className="py-2 pl-3 text-right font-semibold text-gray-800 dark:text-gray-200">${row.total}</td>
                 </tr>
               ))}

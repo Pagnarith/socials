@@ -42,9 +42,9 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         <div>
           <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-            🎮 Socials Dashboard
+            📚 Homework Palette
           </Link>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Digital Financial Plan — Minecraft & Rhino 3D</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Social Ops — grades 1–6 homework for families</p>
         </div>
 
         {/* Desktop nav */}

@@ -1,84 +1,85 @@
 import { Markup } from 'telegraf';
-import { SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
+import { BRAND, SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
 
 const backButton = Markup.inlineKeyboard([
-  [Markup.button.callback('🔙 Back to Menu', 'back_menu')]
+  [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
 ]);
 
+function mainMenuKeyboard() {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback('📚 About App', 'menu_app'),
+      Markup.button.callback('✨ Features', 'menu_features'),
+    ],
+    [
+      Markup.button.callback('📱 Download', 'menu_download'),
+      Markup.button.callback('📺 Latest Video', 'menu_latest'),
+    ],
+    [
+      Markup.button.callback('🔗 Social Links', 'menu_links'),
+      Markup.button.callback('💝 Support Us', 'menu_donate'),
+    ],
+    [
+      Markup.button.callback('🔔 Subscribe', 'menu_subscribe'),
+    ],
+  ]);
+}
+
 export function registerHandlers(bot) {
-  // Back to menu handler
   bot.action('back_menu', (ctx) => {
     ctx.answerCbQuery();
-    ctx.reply('Choose a category:', Markup.inlineKeyboard([
-      [
-        Markup.button.callback('🎮 Minecraft', 'menu_minecraft'),
-        Markup.button.callback('🖥️ Rhino 3D', 'menu_rhino3d'),
-      ],
-      [
-        Markup.button.callback('🛒 Products', 'menu_products'),
-        Markup.button.callback('📺 Latest Video', 'menu_latest'),
-      ],
-      [
-        Markup.button.callback('🔗 Social Links', 'menu_links'),
-        Markup.button.callback('💝 Support Us', 'menu_donate'),
-      ],
-      [
-        Markup.button.callback('🔔 Subscribe', 'menu_subscribe'),
-      ],
-    ]));
+    ctx.reply('Choose a category:', mainMenuKeyboard());
   });
 
-  // Handle inline button callbacks from main menu
-  bot.action('menu_minecraft', (ctx) => {
+  bot.action('menu_app', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🎮 *Minecraft Add-ons*
+📚 *${BRAND.name}*
 
-We build custom Bedrock Edition Add-ons!
+${BRAND.tagline}
 
-📦 *YuttTools* — Helper Robot companion
-🆓 Free for everyone
-🛒 Coming to Microsoft Marketplace
+🆓 Free library, print, builder, read-aloud, lesson recorder
+⭐ Palette Pro — in-app quizzes
 
-What would you like to know?
+Publisher: ${BRAND.publisher}
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🎬 YouTube', SOCIAL_LINKS.youtube)],
-      [Markup.button.callback('🔔 Notify Me', 'notify_minecraft')],
+      [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
+      [Markup.button.callback('🔔 Notify Me', 'notify_app')],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  bot.action('menu_rhino3d', (ctx) => {
+  bot.action('menu_features', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🖥️ *Rhino 3D — Plugins & Tutorials*
+✨ *Features*
 
-Professional plugins and tutorials for Rhinoceros 3D.
+📚 Free grades 1–6 library
+🛠️ Worksheet builder
+🔊 Khmer & English read-aloud
+🎥 Lesson recorder with background finish
+⭐ Palette Pro quizzes
 
-🔌 *Plugins for sale* — Starting from $19
-📚 Beginner to Advanced tutorials
-📱 Quick tips on TikTok
-📺 Full tutorials on YouTube
+Use /features for the full list.
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🛒 Browse Plugins', PRODUCT_LINKS.rhinoStore)],
-      [Markup.button.url('🎬 YouTube', SOCIAL_LINKS.youtube)],
+      [Markup.button.url('📱 Get the app', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🖼️ Poster', PRODUCT_LINKS.poster)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
 
-  bot.action('menu_products', (ctx) => {
+  bot.action('menu_download', (ctx) => {
     ctx.answerCbQuery();
     ctx.replyWithMarkdown(`
-🛒 *Our Products*
+📱 *Download ${BRAND.name}*
 
-🎮 *Minecraft* — Free Add-ons for Bedrock Edition
-🖥️ *Rhino Plugins* — Professional tools ($19-$149)
-📦 *Bundle* — All plugins at discount ($199-$299)
+Free on the App Store for iPhone & iPad.
 
-Use /products for full details!
+${PRODUCT_LINKS.appStore}
     `, Markup.inlineKeyboard([
-      [Markup.button.url('🦏 food4Rhino', PRODUCT_LINKS.rhinoStore)],
-      [Markup.button.url('🛍️ Gumroad', PRODUCT_LINKS.gumroad)],
+      [Markup.button.url('📱 App Store', PRODUCT_LINKS.appStore)],
+      [Markup.button.url('🌐 Website', PRODUCT_LINKS.marketingSite)],
       [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
     ]));
   });
@@ -88,8 +89,8 @@ Use /products for full details!
     ctx.replyWithMarkdown(`
 💝 *Support Our Work*
 
-Our free content takes time & effort to create.
-Every contribution helps us keep going!
+${BRAND.name} keeps the homework library free for families.
+Every contribution helps us ship updates.
 
 Use /donate for all support options.
     `, Markup.inlineKeyboard([
@@ -101,7 +102,10 @@ Use /donate for all support options.
 
   bot.action('menu_latest', (ctx) => {
     ctx.answerCbQuery();
-    ctx.replyWithMarkdown('📺 Latest videos coming soon! Use /subscribe to get notified.', backButton);
+    ctx.replyWithMarkdown(
+      '📺 Latest videos coming soon! Use /subscribe to get notified.',
+      backButton
+    );
   });
 
   bot.action('menu_links', (ctx) => {
@@ -112,7 +116,8 @@ Use /donate for all support options.
 📘 Facebook: ${SOCIAL_LINKS.facebook}
 📱 TikTok: ${SOCIAL_LINKS.tiktok}
 📷 Instagram: ${SOCIAL_LINKS.instagram}
-🛒 Shop: ${PRODUCT_LINKS.productsPage}
+📱 App: ${PRODUCT_LINKS.appStore}
+🌐 Site: ${PRODUCT_LINKS.marketingSite}
     `, backButton);
   });
 
@@ -121,26 +126,23 @@ Use /donate for all support options.
     ctx.replyWithMarkdown(`✅ You're now subscribed to notifications, ${ctx.from.first_name}!`);
   });
 
-  bot.action('notify_minecraft', (ctx) => {
-    ctx.answerCbQuery('You\'ll be notified on Add-on release! 🎮');
-    ctx.reply('🔔 You\'ll get a notification when new Minecraft Add-ons are released!');
+  bot.action('notify_app', (ctx) => {
+    ctx.answerCbQuery("You'll be notified on app updates! 📚");
+    ctx.reply(`🔔 You'll get a notification when ${BRAND.name} has news or new videos!`);
   });
 
-  // Handle text messages — Auto-reply for common keywords
   bot.on('text', (ctx) => {
     const raw = ctx.message.text;
     if (!raw || raw.startsWith('/')) return;
     const text = raw.toLowerCase();
     const match = (pattern) => pattern.test(text);
 
-    if (match(/\b(?:buy|purchase|price|pricing|store|shop)\b/)) {
-      ctx.reply('🛒 Check out our products with /products — Rhino plugins starting from $19!');
+    if (match(/\b(?:buy|purchase|price|pricing|store|shop|download|app\s*store)\b/)) {
+      ctx.reply(`📱 Get ${BRAND.name} free on the App Store — use /download`);
     } else if (match(/\b(?:donate|support|sponsor|coffee|patreon)\b/)) {
       ctx.reply('💝 Thank you for wanting to support us! Use /donate to see all options.');
-    } else if (match(/\b(?:plugin|rhino|3d|modeling)\b/)) {
-      ctx.reply('🖥️ Interested in Rhino 3D? Use /rhino3d for plugins & tutorials!');
-    } else if (match(/\b(?:minecraft|add-?on|addon)\b/)) {
-      ctx.reply('🎮 Interested in Minecraft? Use /minecraft for all the details!');
+    } else if (match(/\b(?:feature|quiz|pro|recorder|library|homework|palette)\b/)) {
+      ctx.reply(`📚 Interested in ${BRAND.name}? Use /app or /features.`);
     } else if (match(/\b(?:youtube|video)\b/)) {
       ctx.reply('📺 Check out our latest videos with /latest or find our channel with /links');
     } else if (match(/\b(?:hello|hi|hey)\b/)) {

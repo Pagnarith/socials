@@ -4,7 +4,7 @@ const revenueStreams = [
   { platform: 'Facebook', source: 'In-Stream Ads', current: 0, target: 50, currency: 'USD' },
   { platform: 'Instagram', source: 'Reels Bonus & Branded', current: 0, target: 40, currency: 'USD' },
   { platform: 'TikTok', source: 'Creator Fund', current: 0, target: 30, currency: 'USD' },
-  { platform: 'Minecraft', source: 'Marketplace Sales', current: 0, target: 200, currency: 'USD' },
+  { platform: 'App Store', source: 'Palette Pro subscriptions', current: 0, target: 200, currency: 'USD' },
 ];
 
 export function RevenueOverview() {
@@ -13,7 +13,6 @@ export function RevenueOverview() {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-6">
-      {/* Total Revenue */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">Total Monthly Revenue</p>
@@ -21,24 +20,22 @@ export function RevenueOverview() {
         </div>
         <div className="sm:text-right">
           <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Target</p>
-          <p className="text-xl font-semibold text-green-600 dark:text-green-400">${totalTarget.toFixed(2)}</p>
+          <p className="text-xl font-semibold text-violet-600 dark:text-violet-400">${totalTarget.toFixed(2)}</p>
         </div>
       </div>
 
-      {/* Progress Bar */}
       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-6">
         <div
-          className="bg-green-500 h-3 rounded-full transition-all"
+          className="bg-violet-500 h-3 rounded-full transition-all"
           style={{ width: `${Math.min((totalCurrent / totalTarget) * 100, 100)}%` }}
         />
       </div>
 
-      {/* Breakdown */}
       <div className="space-y-3">
         {revenueStreams.map((stream, i) => (
           <div key={i} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-400" />
+              <span className="w-2 h-2 rounded-full bg-violet-400" />
               <span className="text-gray-600 dark:text-gray-400">{stream.platform} — {stream.source}</span>
             </div>
             <div className="flex items-center gap-3">
