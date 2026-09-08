@@ -65,4 +65,4 @@ npm run dev:bot         # Telegram bot
 
 ## Financial Goals
 
-See [docs/financial-plan.md](docs/financial-plan.md).
+Apple App Store–first plan (Palette Pro + social acquisition): [docs/financial-plan.md](docs/financial-plan.md).

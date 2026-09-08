@@ -58,13 +58,24 @@ const platformAnalytics = [
       { label: 'Active Users (7d)', value: 0, unit: '' },
     ],
   },
+  {
+    name: 'App Store',
+    icon: '📚',
+    color: 'border-violet-300 dark:border-violet-700',
+    metrics: [
+      { label: 'Downloads (all time)', value: 0, target: 1000, unit: 'units' },
+      { label: 'Downloads (30d)', value: 0, unit: 'units' },
+      { label: 'Palette Pro active', value: 0, target: 50, unit: 'subs' },
+      { label: 'Proceeds (30d)', value: '$0', unit: '' },
+    ],
+  },
 ];
 
 const weeklyTrends = [
-  { week: 'W1', youtube: 0, facebook: 0, instagram: 0, tiktok: 0 },
-  { week: 'W2', youtube: 0, facebook: 0, instagram: 0, tiktok: 0 },
-  { week: 'W3', youtube: 0, facebook: 0, instagram: 0, tiktok: 0 },
-  { week: 'W4', youtube: 0, facebook: 0, instagram: 0, tiktok: 0 },
+  { week: 'W1', youtube: 0, facebook: 0, instagram: 0, tiktok: 0, appStore: 0 },
+  { week: 'W2', youtube: 0, facebook: 0, instagram: 0, tiktok: 0, appStore: 0 },
+  { week: 'W3', youtube: 0, facebook: 0, instagram: 0, tiktok: 0, appStore: 0 },
+  { week: 'W4', youtube: 0, facebook: 0, instagram: 0, tiktok: 0, appStore: 0 },
 ];
 
 export default function AnalyticsPage() {
@@ -72,7 +83,9 @@ export default function AnalyticsPage() {
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Cross-platform performance metrics and growth tracking</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Social reach plus Homework Palette App Store / Palette Pro
+        </p>
       </div>
 
       {/* Summary Cards */}
@@ -80,8 +93,8 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <SummaryCard label="Total Followers" value="8" change="+0%" />
           <SummaryCard label="Total Views (30d)" value="0" change="+0%" />
-          <SummaryCard label="Content Published" value="102" change="+0%" />
-          <SummaryCard label="Total Revenue" value="$0.00" change="+0%" />
+          <SummaryCard label="App Downloads" value="0" change="+0%" />
+          <SummaryCard label="Palette Pro + Social $" value="$0.00" change="+0%" />
         </div>
       </section>
 
@@ -134,6 +147,7 @@ export default function AnalyticsPage() {
                 <th className="text-right py-2 px-4">📘 Facebook</th>
                 <th className="text-right py-2 px-4">📸 Instagram</th>
                 <th className="text-right py-2 px-4">📱 TikTok</th>
+                <th className="text-right py-2 px-4">📚 App Store</th>
               </tr>
             </thead>
             <tbody>
@@ -144,6 +158,7 @@ export default function AnalyticsPage() {
                   <td className="py-2 px-4 text-right text-gray-600 dark:text-gray-400">{week.facebook}</td>
                   <td className="py-2 px-4 text-right text-gray-600 dark:text-gray-400">{week.instagram}</td>
                   <td className="py-2 px-4 text-right text-gray-600 dark:text-gray-400">{week.tiktok}</td>
+                  <td className="py-2 px-4 text-right text-gray-600 dark:text-gray-400">{week.appStore}</td>
                 </tr>
               ))}
             </tbody>

@@ -9,7 +9,7 @@ export default function Dashboard() {
       {/* Platform Overview */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Platform Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <PlatformCard
             name="YouTube"
             icon="📺"
@@ -45,12 +45,22 @@ export default function Dashboard() {
             stats={{ subscribers: 0, messages: 0 }}
             goal="Build community"
           />
+          <PlatformCard
+            name="App Store"
+            icon="📚"
+            color="bg-violet-50 border-violet-200 dark:bg-violet-950 dark:border-violet-800"
+            stats={{ downloads: 0, proSubs: 0 }}
+            goal="1K downloads + Palette Pro"
+          />
         </div>
       </section>
 
       {/* Revenue Overview */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Revenue Overview</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2 mb-4">
+          Apple App Store (Palette Pro) is the primary product stream; social funds acquisition.
+        </p>
         <RevenueOverview />
       </section>
 
@@ -62,7 +72,7 @@ export default function Dashboard() {
 
       {/* Milestone Tracker */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Monetization Milestones</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Growth & Monetization Milestones</h2>
         <MilestoneTracker />
       </section>
     </main>

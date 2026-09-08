@@ -30,9 +30,9 @@ export default function RevenuePage() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Revenue</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Plan</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Social monetization + Homework Palette App Store tracking
+          Homework Palette on the App Store — Palette Pro primary, social as acquisition
         </p>
       </div>
 
