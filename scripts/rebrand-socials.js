@@ -83,6 +83,8 @@ Free on the App Store 📱`;
 const TG_COMMANDS = [
   { command: 'start', description: 'Welcome message' },
   { command: 'menu', description: 'Open main menu' },
+  { command: 'today', description: "Today's content + video tips" },
+  { command: 'content', description: 'Alias for /today' },
   { command: 'latest', description: 'Show latest video info' },
   { command: 'app', description: 'About Homework Palette' },
   { command: 'features', description: 'Free features & Palette Pro' },

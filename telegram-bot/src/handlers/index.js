@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { BRAND, SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
 import { escapeHtml, replyHtml } from '../reply.js';
+import { formatTodayContentHtml } from '../todayContent.js';
 
 const backButton = Markup.inlineKeyboard([
   [Markup.button.callback('🔙 Back to Menu', 'back_menu')],
@@ -9,18 +10,19 @@ const backButton = Markup.inlineKeyboard([
 function mainMenuKeyboard() {
   return Markup.inlineKeyboard([
     [
+      Markup.button.callback('📅 Today\'s Content', 'menu_today'),
+      Markup.button.callback('📺 Latest Video', 'menu_latest'),
+    ],
+    [
       Markup.button.callback('📚 About App', 'menu_app'),
       Markup.button.callback('✨ Features', 'menu_features'),
     ],
     [
       Markup.button.callback('📱 Download', 'menu_download'),
-      Markup.button.callback('📺 Latest Video', 'menu_latest'),
-    ],
-    [
       Markup.button.callback('🔗 Social Links', 'menu_links'),
-      Markup.button.callback('💝 Support Us', 'menu_donate'),
     ],
     [
+      Markup.button.callback('💝 Support Us', 'menu_donate'),
       Markup.button.callback('🔔 Subscribe', 'menu_subscribe'),
     ],
   ]);
@@ -30,6 +32,12 @@ export function registerHandlers(bot) {
   bot.action('back_menu', (ctx) => {
     ctx.answerCbQuery();
     ctx.reply('Choose a category:', mainMenuKeyboard());
+  });
+
+  bot.action('menu_today', (ctx) => {
+    ctx.answerCbQuery();
+    const { text, keyboard } = formatTodayContentHtml();
+    replyHtml(ctx, text, keyboard);
   });
 
   bot.action('menu_app', (ctx) => {
@@ -139,6 +147,9 @@ Use /donate for all support options.
       ctx.reply(`📱 Get ${BRAND.name} free on the App Store — use /download`);
     } else if (match(/\b(?:donate|support|sponsor|coffee|patreon)\b/)) {
       ctx.reply('💝 Thank you for wanting to support us! Use /donate to see all options.');
+    } else if (match(/\b(?:today|content|schedule|calendar)\b/)) {
+      const { text, keyboard } = formatTodayContentHtml();
+      replyHtml(ctx, text, keyboard);
     } else if (match(/\b(?:feature|quiz|pro|recorder|library|homework|palette)\b/)) {
       ctx.reply(`📚 Interested in ${BRAND.name}? Use /app or /features.`);
     } else if (match(/\b(?:youtube|video)\b/)) {

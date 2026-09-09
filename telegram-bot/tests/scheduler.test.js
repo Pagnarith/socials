@@ -11,7 +11,8 @@ describe('message generators', () => {
     expect(typeof msg).toBe('string');
     expect(msg.length).toBeGreaterThan(0);
     expect(msg).toContain('*Daily Content Reminder*');
-    expect(msg).toContain('📅');
+    expect(msg).toContain('Ops calendar:');
+    expect(msg).toContain('💡');
   });
 
   it('getDailyContentMessage includes Cambodia date', () => {

@@ -2,6 +2,7 @@ import { Markup } from 'telegraf';
 import { BRAND, SOCIAL_LINKS, PRODUCT_LINKS, DONATE_LINKS } from '../config.js';
 import { isAdmin } from '../admin.js';
 import { escapeHtml, replyHtml } from '../reply.js';
+import { formatTodayContentHtml } from '../todayContent.js';
 
 export function registerCommands(bot) {
   bot.start((ctx) => {
@@ -13,6 +14,7 @@ ${escapeHtml(BRAND.tagline)}
 Publisher: ${escapeHtml(BRAND.publisher)}
 
 🔹 /menu — Main menu
+🔹 /today — Today's content + video tips
 🔹 /latest — Latest video
 🔹 /app — About the app
 🔹 /features — Free &amp; Palette Pro
@@ -31,6 +33,16 @@ Ops: ${escapeHtml(SOCIAL_LINKS.website)}
 
   bot.command('menu', (ctx) => {
     ctx.reply('Choose a category:', mainMenuKeyboard());
+  });
+
+  bot.command('today', (ctx) => {
+    const { text, keyboard } = formatTodayContentHtml();
+    replyHtml(ctx, text, keyboard);
+  });
+
+  bot.command('content', (ctx) => {
+    const { text, keyboard } = formatTodayContentHtml();
+    replyHtml(ctx, text, keyboard);
   });
 
   bot.command('latest', (ctx) => {
@@ -185,6 +197,8 @@ To unsubscribe, use /unsubscribe
 
 🏠 /start — Welcome message
 📋 /menu — Interactive menu
+📅 /today — Today's content + video tips
+📅 /content — Alias for /today
 📺 /latest — Latest video uploads
 📚 /app — About Homework Palette
 ✨ /features — Free &amp; Palette Pro
@@ -214,18 +228,19 @@ To unsubscribe, use /unsubscribe
 function mainMenuKeyboard() {
   return Markup.inlineKeyboard([
     [
+      Markup.button.callback('📅 Today\'s Content', 'menu_today'),
+      Markup.button.callback('📺 Latest Video', 'menu_latest'),
+    ],
+    [
       Markup.button.callback('📚 About App', 'menu_app'),
       Markup.button.callback('✨ Features', 'menu_features'),
     ],
     [
       Markup.button.callback('📱 Download', 'menu_download'),
-      Markup.button.callback('📺 Latest Video', 'menu_latest'),
-    ],
-    [
       Markup.button.callback('🔗 Social Links', 'menu_links'),
-      Markup.button.callback('💝 Support Us', 'menu_donate'),
     ],
     [
+      Markup.button.callback('💝 Support Us', 'menu_donate'),
       Markup.button.callback('🔔 Subscribe', 'menu_subscribe'),
     ],
   ]);

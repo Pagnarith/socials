@@ -1,5 +1,10 @@
 // node-cron loaded lazily inside scheduledJobs() to avoid penalising serverless cold starts
-import { CAMBODIA_TIMEZONE } from './config.js';
+import { CAMBODIA_TIMEZONE, SOCIAL_LINKS } from './config.js';
+import {
+  CATEGORY_ICONS,
+  getTodaySchedule,
+  videoTipForItem,
+} from '../../shared/content-calendar.js';
 
 function getCambodiaDateParts(date = new Date()) {
   const formatter = new Intl.DateTimeFormat('en-US', {
@@ -11,14 +16,14 @@ function getCambodiaDateParts(date = new Date()) {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: false,
   });
 
   const parts = Object.fromEntries(
     formatter
       .formatToParts(date)
       .filter((part) => part.type !== 'literal')
-      .map((part) => [part.type, part.value])
+      .map((part) => [part.type, part.value]),
   );
 
   return parts;
@@ -35,26 +40,20 @@ function requireChannelId() {
 }
 
 function dailyScheduleMessage() {
-  const dateParts = getCambodiaDateParts();
-  const weekday = dateParts.weekday;
-  const scheduleMap = {
-    Sun: '📅 Sunday: Rest day — plan next week\'s Homework Palette posts!',
-    Mon: '📅 Monday: Parent tip Reel on Facebook & TikTok (Khmer + English homework)',
-    Tue: '📅 Tuesday: Upload Homework Palette app demo to YouTube!',
-    Wed: '📅 Wednesday: Feature highlight on Facebook & short TikTok tip',
-    Thu: '📅 Thursday: Upload lesson-recorder walkthrough to YouTube!',
-    Fri: '📅 Friday: Engagement posts + App Store CTA on Facebook & TikTok',
-    Sat: '📅 Saturday: Bilingual family homework clip + poster share',
-  };
-  const cambodiaDateLabel = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+  const { dayName, dateLabel, items } = getTodaySchedule();
+  const lines = items.map((item, index) => {
+    const icon = CATEGORY_ICONS[item.category] || '📌';
+    return `${index + 1}. ${icon} *${item.platform}* — ${item.type}\n💡 ${videoTipForItem(item)}`;
+  });
 
   return `
 🔔 *Daily Content Reminder*
 
-Cambodia date: ${cambodiaDateLabel} (${weekday})
+Cambodia date: ${dateLabel} (${dayName})
 
-${scheduleMap[weekday]}
+${lines.join('\n\n')}
 
+Ops calendar: ${SOCIAL_LINKS.website}
 Stay consistent, stay creative! 💪
     `;
 }
