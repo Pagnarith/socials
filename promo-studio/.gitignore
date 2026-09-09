@@ -1,0 +1,11 @@
+node_modules/
+data/uploads/*
+data/outputs/*
+data/jobs/*
+!data/uploads/.gitkeep
+!data/outputs/.gitkeep
+!data/jobs/.gitkeep
+.env
+*.mp4
+*.mov
+.DS_Store

@@ -1,0 +1,2 @@
+cd /Users/imphanpagnarith/projects/socials
+npm run dev:promo-studio

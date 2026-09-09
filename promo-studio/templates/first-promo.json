@@ -1,0 +1,30 @@
+{
+  "name": "first-promo",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "clips": [
+    {
+      "id": "hook",
+      "type": "either",
+      "asset": "hook.mp4",
+      "assets": ["hook.mp4", "hook.png"],
+      "maxDuration": 3,
+      "duration": 3
+    },
+    {
+      "id": "screen",
+      "type": "video",
+      "asset": "screen.mp4",
+      "maxDuration": 28
+    },
+    {
+      "id": "endcard",
+      "type": "image",
+      "asset": "poster.png",
+      "duration": 2
+    }
+  ],
+  "subtitles": "first-promo.srt",
+  "notes": "Hook can be hook.mp4 or hook.png (still held for duration seconds). Screen stays video; poster is the end card."
+}

@@ -1,0 +1,5 @@
+{
+  "watch": ["src", "public", "templates"],
+  "ext": "js,mjs,cjs,json,html",
+  "ignore": ["data/**", "node_modules/**"]
+}

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework Palette — Promo Studio</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a222c;
+      --text: #eef3f8;
+      --muted: #9aa8b5;
+      --accent: #7c6cf0;
+      --ok: #3ecf8e;
+      --err: #ff8f8f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #2a1f4d, transparent), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    main { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin: 0 0 0.35rem; }
+    p { color: var(--muted); line-height: 1.5; }
+    .card {
+      background: var(--card);
+      border: 1px solid #2c3744;
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+    .card h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.05rem;
+    }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="file"], input[type="text"], input[type="password"], select {
+      width: 100%;
+      margin-bottom: 0.85rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #3a4654;
+      background: #121820;
+      color: var(--text);
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      border: 0;
+      border-radius: 999px;
+      padding: 0.7rem 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: transparent;
+      border: 1px solid #4a5868;
+      color: var(--text);
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    pre {
+      background: #121820;
+      border-radius: 8px;
+      padding: 0.85rem;
+      overflow: auto;
+      font-size: 0.8rem;
+      color: #c9d4e0;
+      max-height: 240px;
+    }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    a { color: #a9b4ff; }
+    .progress {
+      height: 8px;
+      background: #121820;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0.75rem 0 0.35rem;
+      border: 1px solid #3a4654;
+    }
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7c6cf0, #3ecf8e);
+      transition: width 0.25s ease;
+    }
+    .meta, .hint { font-size: 0.82rem; color: var(--muted); }
+    .steps {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 0;
+    }
+    .steps span {
+      font-size: 0.75rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #3a4654;
+      color: var(--muted);
+    }
+    .steps span.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(124, 108, 240, 0.18);
+    }
+    .steps span.done {
+      border-color: rgba(62, 207, 142, 0.5);
+      color: var(--ok);
+    }
+    .panel[hidden] { display: none !important; }
+    .row {
+      display: grid;
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+      padding: 0.85rem;
+      border: 1px solid #2c3744;
+      border-radius: 10px;
+      background: #121820;
+    }
+    .row.ok { border-color: rgba(62, 207, 142, 0.45); }
+    .row.err { border-color: rgba(255, 143, 143, 0.45); }
+    .actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Promo Studio</h1>
+    <p>Assemble Homework Palette promos in order: key → template → assets → verify → render.</p>
+
+    <nav class="steps" id="stepNav" aria-label="Flow steps"></nav>
+
+    <div class="card panel" data-step="1">
+      <h2>1. API key</h2>
+      <p class="hint">Paste the raw key from <code>promo-studio/.env</code> (no <code>Bearer</code> prefix). Saved in this browser.</p>
+      <label for="apiKey">PROMO_STUDIO_API_KEY</label>
+      <input id="apiKey" type="password" placeholder="paste key only" autocomplete="off" />
+      <div class="actions">
+        <button id="keyContinue" type="button">Continue</button>
+      </div>
+    </div>
+
+    <div class="card panel" data-step="2" hidden>
+      <h2>2. Template</h2>
+      <label for="template">Choose template</label>
+      <select id="template"></select>
+      <p id="templateMeta" class="meta"></p>
+      <div id="templateNeeds"></div>
+      <div class="actions">
+        <button class="secondary" id="backToKey" type="button">Back</button>
+        <button id="templateContinue" type="button">Continue</button>
+      </div>
+    </div>
+
+    <div class="card panel" data-step="3" hidden>
+      <h2>3. Upload assets</h2>
+      <p class="hint" id="uploadHint">Pick one file per slot. Files are stored under the template slot names.</p>
+      <div id="uploadSlots"></div>
+      <div class="actions">
+        <button class="secondary" id="backToTemplate" type="button">Back</button>
+        <button id="uploadBtn" type="button">Upload selected</button>
+        <button id="assetsContinue" type="button" disabled>Continue</button>
+      </div>
+    </div>
+
+    <div class="card panel" data-step="4" hidden>
+      <h2>4. Verify</h2>
+      <p class="hint">Checks slot names, file types, and video length against the template.</p>
+      <div id="verifyResults"></div>
+      <div class="actions">
+        <button class="secondary" id="backToAssets" type="button">Back</button>
+        <button id="verifyBtn" type="button">Verify</button>
+        <button id="verifyContinue" type="button" disabled>Continue</button>
+      </div>
+    </div>
+
+    <div class="card panel" data-step="5" hidden>
+      <h2>5. Render</h2>
+      <p class="hint" id="renderSummary"></p>
+      <div class="actions">
+        <button class="secondary" id="backToVerify" type="button">Back</button>
+        <button id="renderBtn" type="button">Render</button>
+      </div>
+      <div class="progress" id="progressBar" hidden><span id="progressFill"></span></div>
+    </div>
+
+    <div class="card">
+      <p id="status"></p>
+      <pre id="out">Ready.</pre>
+    </div>
+  </main>
+  <script>
+    const API_KEY_STORAGE = 'promo-studio.apiKey';
+    const STEP_LABELS = ['API key', 'Template', 'Assets', 'Verify', 'Render'];
+
+    let step = 1;
+    let templates = [];
+    let uploads = [];
+    let lastValidation = null;
+    let assetsReady = false;
+
+    function normalizeApiKey(raw) {
+      let key = String(raw || '').trim();
+      if (/^bearer\s+/i.test(key)) key = key.replace(/^bearer\s+/i, '').trim();
+      return key;
+    }
+
+    function readApiKey() {
+      return normalizeApiKey(document.getElementById('apiKey').value);
+    }
+
+    function headers() {
+      const key = readApiKey();
+      const h = {};
+      if (key) h['Authorization'] = 'Bearer ' + key;
+      return h;
+    }
+
+    function persistApiKey() {
+      const key = readApiKey();
+      document.getElementById('apiKey').value = key;
+      if (key) localStorage.setItem(API_KEY_STORAGE, key);
+      else localStorage.removeItem(API_KEY_STORAGE);
+      return key;
+    }
+
+    function restoreApiKey() {
+      const saved = localStorage.getItem(API_KEY_STORAGE) || '';
+      if (saved) document.getElementById('apiKey').value = saved;
+    }
+
+    function setStatus(message, kind = '') {
+      const el = document.getElementById('status');
+      el.textContent = message || '';
+      el.className = kind;
+    }
+
+    function setProgress(percent, message, { ok = false, err = false } = {}) {
+      const bar = document.getElementById('progressBar');
+      const fill = document.getElementById('progressFill');
+      const pct = Math.max(0, Math.min(100, Number(percent) || 0));
+      bar.hidden = false;
+      fill.style.width = pct + '%';
+      setStatus(message ? `${message} (${pct}%)` : `${pct}%`, ok ? 'ok' : err ? 'err' : '');
+    }
+
+    function sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
+
+    function formatSeconds(n) {
+      if (n == null) return 'unknown';
+      return `${Number(n).toFixed(Number(n) < 10 ? 1 : 0)}s`;
+    }
+
+    function selectedTemplate() {
+      const name = document.getElementById('template').value;
+      return templates.find((t) => t.name === name) || null;
+    }
+
+    function describeNeed(req) {
+      const accept = req.accept || (req.type === 'image' ? ['image'] : req.type === 'either' ? ['video', 'image'] : ['video']);
+      if (accept.includes('video') && accept.includes('image')) {
+        return `Video up to ${formatSeconds(req.seconds?.maxDuration)} or PNG still ${formatSeconds(req.seconds?.stillDuration)}`;
+      }
+      if (accept.includes('image') && !accept.includes('video')) {
+        return `Image still · on screen ${formatSeconds(req.seconds?.stillDuration)}`;
+      }
+      return `Video · up to ${formatSeconds(req.seconds?.maxDuration)}`;
+    }
+
+    function slotAccept(req) {
+      const accept = req.accept || (req.type === 'image' ? ['image'] : req.type === 'either' ? ['video', 'image'] : ['video']);
+      if (accept.includes('video') && accept.includes('image')) return 'video/*,image/png,image/jpeg,image/webp';
+      if (accept.includes('image')) return 'image/png,image/jpeg,image/webp';
+      return 'video/*';
+    }
+
+    function slotCandidates(req) {
+      return req.candidates?.length ? req.candidates : [req.expectedName];
+    }
+
+    function findUploadedForReq(req) {
+      const names = slotCandidates(req);
+      return uploads.find((a) => names.includes(a.name)) || null;
+    }
+
+    function storageNameForUpload(req, file) {
+      const candidates = slotCandidates(req);
+      const ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+      const match = candidates.find((name) => name.toLowerCase().endsWith(ext));
+      if (match) return match;
+      if (file.type.startsWith('image/')) {
+        return candidates.find((n) => /\.(png|jpe?g|webp)$/i.test(n)) || `hook${ext || '.png'}`;
+      }
+      return candidates.find((n) => /\.(mp4|mov)$/i.test(n)) || req.expectedName;
+    }
+
+    function showStep(n) {
+      step = n;
+      document.querySelectorAll('.panel[data-step]').forEach((panel) => {
+        panel.hidden = Number(panel.dataset.step) !== n;
+      });
+      const nav = document.getElementById('stepNav');
+      nav.innerHTML = STEP_LABELS.map((label, i) => {
+        const num = i + 1;
+        const cls = num === n ? 'active' : num < n ? 'done' : '';
+        return `<span class="${cls}">${num}. ${label}</span>`;
+      }).join('');
+    }
+
+    function currentAssetMap() {
+      const template = selectedTemplate();
+      const map = {};
+      if (!template) return map;
+      for (const req of template.requirements || []) {
+        const uploaded = findUploadedForReq(req);
+        if (uploaded) map[req.expectedName] = uploaded.name;
+      }
+      return map;
+    }
+
+    function renderTemplateNeeds() {
+      const template = selectedTemplate();
+      const root = document.getElementById('templateNeeds');
+      if (!template) {
+        document.getElementById('templateMeta').textContent = '';
+        root.innerHTML = '<p class="hint">No template selected.</p>';
+        return;
+      }
+      document.getElementById('templateMeta').textContent =
+        `${template.width}x${template.height} · ${template.fps} fps · ${template.subtitles || 'no subtitles'}`;
+      root.innerHTML = (template.requirements || []).map((req) => `
+        <div class="row">
+          <strong>${req.id}</strong>
+          <div class="meta">Slot: <code>${slotCandidates(req).join(' / ')}</code> · ${describeNeed(req)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderUploadSlots() {
+      const template = selectedTemplate();
+      const root = document.getElementById('uploadSlots');
+      if (!template) {
+        root.innerHTML = '<p class="hint">Pick a template first.</p>';
+        return;
+      }
+      const names = (template.requirements || [])
+        .map((r) => slotCandidates(r).join(' or '))
+        .join(' / ');
+      document.getElementById('uploadHint').textContent =
+        `Upload ${names}. Hook accepts mp4 or png.`;
+
+      root.innerHTML = (template.requirements || []).map((req) => {
+        const uploaded = findUploadedForReq(req);
+        const accept = slotAccept(req);
+        const meta = uploaded
+          ? `${uploaded.name} · ${uploaded.kind || 'file'}${uploaded.duration != null ? ` · ${formatSeconds(uploaded.duration)}` : ''}${uploaded.width && uploaded.height ? ` · ${uploaded.width}x${uploaded.height}` : ''}`
+          : `Not uploaded yet · accept ${slotCandidates(req).join(' or ')}`;
+        return `
+          <div class="row ${uploaded ? 'ok' : ''}">
+            <strong>${req.id}</strong>
+            <div class="meta">${describeNeed(req)}</div>
+            <label for="file-${req.expectedName}">Choose ${slotCandidates(req).join(' / ')}</label>
+            <input id="file-${req.expectedName}" type="file" accept="${accept}" data-slot="${req.expectedName}" />
+            <div class="hint">${meta}</div>
+          </div>
+        `;
+      }).join('');
+
+      const allPresent = (template.requirements || []).every((req) => findUploadedForReq(req));
+      assetsReady = allPresent;
+      document.getElementById('assetsContinue').disabled = !allPresent;
+    }
+
+    function renderVerifyResults() {
+      const root = document.getElementById('verifyResults');
+      const template = selectedTemplate();
+      if (!lastValidation || !template) {
+        root.innerHTML = '<p class="hint">Click Verify to check uploads against this template.</p>';
+        document.getElementById('verifyContinue').disabled = true;
+        return;
+      }
+      root.innerHTML = (lastValidation.requirements || []).map((req) => `
+        <div class="row ${req.valid ? 'ok' : 'err'}">
+          <strong>${req.id}</strong>
+          <div class="meta">
+            ${(req.candidates || [req.expectedName]).join(' / ')}
+            ${req.accept?.includes('image') && req.accept?.includes('video')
+              ? ` · video max ${formatSeconds(req.requiredSeconds)} or still ${formatSeconds(req.stillDuration)}`
+              : req.type === 'image'
+                ? (req.requiredSeconds != null ? ` · still ${formatSeconds(req.requiredSeconds)} on screen` : '')
+                : (req.requiredSeconds != null ? ` · max ${formatSeconds(req.requiredSeconds)}` : '')}
+            ${req.asset?.name ? ` · using ${req.asset.name}` : ''}
+            ${req.asset?.duration != null ? ` · uploaded ${formatSeconds(req.asset.duration)}` : ''}
+            ${req.asset?.kind ? ` · detected ${req.asset.kind}` : ''}
+          </div>
+          <div class="hint ${req.valid ? 'ok' : 'err'}">
+            ${req.valid ? 'OK' : (req.issues || []).join(' | ')}
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('verifyContinue').disabled = !lastValidation.ok;
+    }
+
+    function updateRenderSummary() {
+      const template = selectedTemplate();
+      if (!template) {
+        document.getElementById('renderSummary').textContent = '';
+        return;
+      }
+      const slots = (template.requirements || [])
+        .map((r) => `${r.id}=${r.expectedName}`)
+        .join(', ');
+      document.getElementById('renderSummary').textContent =
+        `Template ${template.name} · ${slots}`;
+    }
+
+    async function loadAssets() {
+      const res = await fetch('/v1/assets', { headers: headers() });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Assets failed (${res.status})`);
+      uploads = Array.isArray(data.assets) ? data.assets : [];
+      return data;
+    }
+
+    async function loadTemplates() {
+      const res = await fetch('/v1/templates', { headers: headers() });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Templates failed (${res.status})`);
+      templates = Array.isArray(data.templates) ? data.templates : [];
+      const select = document.getElementById('template');
+      const current = select.value;
+      select.innerHTML = templates
+        .map((t) => `<option value="${t.name}" ${t.name === current ? 'selected' : ''}>${t.name}</option>`)
+        .join('');
+      if (!select.value && templates[0]) select.value = templates[0].name;
+      renderTemplateNeeds();
+      return data;
+    }
+
+    async function verifyTemplate() {
+      const template = document.getElementById('template').value;
+      const res = await fetch('/v1/validate', {
+        method: 'POST',
+        headers: { ...headers(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ template, assetMap: currentAssetMap() }),
+      });
+      const data = await res.json();
+      lastValidation = data;
+      document.getElementById('out').textContent = JSON.stringify(data, null, 2);
+      renderVerifyResults();
+      setStatus(
+        res.ok ? 'Verified: files and lengths fit this template' : (data.errors?.[0] || data.error || 'Validation failed'),
+        res.ok ? 'ok' : 'err',
+      );
+      return { ok: res.ok, data };
+    }
+
+    async function pollJob(jobId) {
+      const downloadUrl = `/v1/jobs/${jobId}/download`;
+      for (;;) {
+        const res = await fetch(`/v1/jobs/${jobId}`, { headers: headers() });
+        const data = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(data, null, 2);
+        if (!res.ok) {
+          setProgress(0, data.error || 'Job poll failed', { err: true });
+          throw new Error(data.error || 'Job poll failed');
+        }
+        const progress = data.progress || {};
+        const percent = progress.percent ?? (data.status === 'done' ? 100 : 5);
+        const message = progress.message || data.status || 'Working…';
+        if (data.status === 'done') {
+          setProgress(100, 'Done', { ok: true });
+          document.getElementById('status').innerHTML =
+            'Done — <a href="#" id="downloadLink">download MP4</a>';
+          document.getElementById('status').className = 'ok';
+          document.getElementById('downloadLink').onclick = async (e) => {
+            e.preventDefault();
+            const fileRes = await fetch(downloadUrl, { headers: headers() });
+            if (!fileRes.ok) {
+              alert('Download failed (' + fileRes.status + ')');
+              return;
+            }
+            const blob = await fileRes.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `promo-${jobId}.mp4`;
+            a.click();
+            URL.revokeObjectURL(url);
+          };
+          return data;
+        }
+        if (data.status === 'failed') {
+          setProgress(percent, data.error || 'Render failed', { err: true });
+          throw new Error(data.error || 'Render failed');
+        }
+        setProgress(percent, message);
+        await sleep(800);
+      }
+    }
+
+    document.getElementById('keyContinue').onclick = async () => {
+      const key = persistApiKey();
+      if (!key) {
+        setStatus('Paste the API key first', 'err');
+        return;
+      }
+      setStatus('Checking API key…');
+      try {
+        await loadTemplates();
+        await loadAssets();
+        setStatus('API key accepted', 'ok');
+        showStep(2);
+      } catch (err) {
+        setStatus(
+          /401|Unauthorized/i.test(err.message || '')
+            ? 'Unauthorized — check PROMO_STUDIO_API_KEY'
+            : (err.message || 'Could not continue'),
+          'err',
+        );
+      }
+    };
+
+    document.getElementById('apiKey').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('keyContinue').click();
+      }
+    });
+
+    document.getElementById('backToKey').onclick = () => showStep(1);
+    document.getElementById('template').onchange = () => {
+      lastValidation = null;
+      assetsReady = false;
+      renderTemplateNeeds();
+    };
+    document.getElementById('templateContinue').onclick = async () => {
+      if (!selectedTemplate()) {
+        setStatus('Choose a template', 'err');
+        return;
+      }
+      try {
+        await loadAssets();
+      } catch (err) {
+        setStatus(err.message || 'Could not load assets', 'err');
+        return;
+      }
+      lastValidation = null;
+      renderUploadSlots();
+      showStep(3);
+      setStatus(`Template ${selectedTemplate().name} selected`, 'ok');
+    };
+
+    document.getElementById('backToTemplate').onclick = () => showStep(2);
+    document.getElementById('uploadBtn').onclick = async () => {
+      const template = selectedTemplate();
+      if (!template) return;
+      const picks = (template.requirements || [])
+        .map((req) => {
+          const input = document.getElementById(`file-${req.expectedName}`);
+          const file = input?.files?.[0];
+          return file ? { req, file } : null;
+        })
+        .filter(Boolean);
+      if (!picks.length) {
+        setStatus('Choose at least one file to upload', 'err');
+        return;
+      }
+      setStatus('Uploading…');
+      const uploaded = [];
+      try {
+        for (const { req, file } of picks) {
+          const storedAs = storageNameForUpload(req, file);
+          const fd = new FormData();
+          fd.append('file', file, storedAs);
+          fd.append('name', storedAs);
+          const res = await fetch('/v1/assets', { method: 'POST', headers: headers(), body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || `Upload failed for ${storedAs}`);
+          uploaded.push(storedAs);
+          // Keep only the chosen hook variant (mp4 vs png), not both.
+          for (const other of slotCandidates(req)) {
+            if (other !== storedAs) {
+              await fetch(`/v1/assets/${encodeURIComponent(other)}`, {
+                method: 'DELETE',
+                headers: headers(),
+              }).catch(() => {});
+            }
+          }
+        }
+        await loadAssets();
+        lastValidation = null;
+        renderUploadSlots();
+        document.getElementById('out').textContent = JSON.stringify({ uploaded, assets: uploads }, null, 2);
+        setStatus(
+          assetsReady
+            ? `Uploaded ${uploaded.join(', ')} — all slots ready`
+            : `Uploaded ${uploaded.join(', ')} — finish remaining slots`,
+          assetsReady ? 'ok' : '',
+        );
+      } catch (err) {
+        setStatus(err.message || 'Upload failed', 'err');
+      }
+    };
+    document.getElementById('assetsContinue').onclick = () => {
+      if (!assetsReady) {
+        setStatus('Upload every required slot first', 'err');
+        return;
+      }
+      lastValidation = null;
+      renderVerifyResults();
+      showStep(4);
+      setStatus('Ready to verify', '');
+    };
+
+    document.getElementById('backToAssets').onclick = () => {
+      renderUploadSlots();
+      showStep(3);
+    };
+    document.getElementById('verifyBtn').onclick = async () => {
+      try {
+        await loadAssets();
+        await verifyTemplate();
+      } catch (err) {
+        setStatus(err.message || 'Verify failed', 'err');
+      }
+    };
+    document.getElementById('verifyContinue').onclick = () => {
+      if (!lastValidation?.ok) {
+        setStatus('Verify must pass before render', 'err');
+        return;
+      }
+      updateRenderSummary();
+      showStep(5);
+      setStatus('Ready to render', 'ok');
+    };
+
+    document.getElementById('backToVerify').onclick = () => showStep(4);
+    document.getElementById('renderBtn').onclick = async () => {
+      const template = document.getElementById('template').value;
+      setProgress(0, 'Starting render…');
+      document.getElementById('renderBtn').disabled = true;
+      try {
+        await loadAssets();
+        const validation = await verifyTemplate();
+        if (!validation.ok) {
+          setProgress(0, 'Fix validation errors before render', { err: true });
+          showStep(4);
+          return;
+        }
+        const res = await fetch('/v1/render', {
+          method: 'POST',
+          headers: { ...headers(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ template, assetMap: currentAssetMap() }),
+        });
+        const data = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(data, null, 2);
+        if (!res.ok) {
+          setProgress(0, data.error || data.errors?.[0] || 'Render failed', { err: true });
+          return;
+        }
+        if (!data.id) {
+          setProgress(0, 'No job id returned', { err: true });
+          return;
+        }
+        setProgress(data.progress?.percent || 1, data.progress?.message || 'Queued…');
+        await pollJob(data.id);
+      } catch (err) {
+        setProgress(
+          document.getElementById('progressFill').style.width.replace('%', '') || 0,
+          err.message || 'Render failed',
+          { err: true },
+        );
+        document.getElementById('out').textContent = String(err.stack || err);
+      } finally {
+        document.getElementById('renderBtn').disabled = false;
+      }
+    };
+
+    restoreApiKey();
+    showStep(1);
+    setStatus(readApiKey() ? 'Enter Continue to unlock the template step' : 'Start with your API key');
+  </script>
+</body>
+</html>

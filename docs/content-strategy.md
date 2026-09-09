@@ -44,4 +44,7 @@ Ready-made homework for grades 1–6. Free library, builder, Khmer & English rea
 
 - Marketing site: https://homework.chakriya.net/  
 - Poster: https://homework.chakriya.net/poster.html  
-- Ops dashboard: https://social.chakriya.net/
+- Ops dashboard: https://social.chakriya.net/  
+- First promo filming brief (30–45s TikTok/Reel): [`docs/first-promo-video.md`](first-promo-video.md)  
+- CapCut config pack (SRT + TTS): [`docs/capcut/`](capcut/README.md)  
+- Promo Studio (remote render API for agent collab): [`promo-studio/README.md`](../promo-studio/README.md)

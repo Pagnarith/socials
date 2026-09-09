@@ -10,11 +10,13 @@
   "workspaces": [
     "dashboard",
     "telegram-bot",
-    "dataverse"
+    "dataverse",
+    "promo-studio"
   ],
   "scripts": {
     "dev:dashboard": "npm run dev --workspace=dashboard",
     "dev:bot": "npm run start --workspace=telegram-bot",
+    "dev:promo-studio": "npm run dev --workspace=promo-studio",
     "build": "npm run build --workspace=dashboard",
     "lint": "npm run lint --workspace=dashboard",
     "setup": "npm install && cp -n .env.example .env || true",
