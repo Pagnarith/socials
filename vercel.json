@@ -1,7 +1,11 @@
 {
+  "installCommand": "npm install --include-workspace-root --workspace=telegram-bot --workspace=dataverse",
   "functions": {
     "api/telegram-webhook.js": {
       "maxDuration": 25
+    },
+    "api/analytics/*.js": {
+      "maxDuration": 20
     },
     "api/cron/*.js": {
       "maxDuration": 10

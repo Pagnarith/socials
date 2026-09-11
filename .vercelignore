@@ -1,0 +1,6 @@
+# Heavy local-only / Mac render stack — not needed for Vercel API + webhook
+promo-studio/
+docs/facebook-pro-giveaway/.venv/
+docs/facebook-pro-giveaway/creatives/
+*.mp4
+*.mov

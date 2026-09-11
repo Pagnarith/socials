@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.100",
-    "@napi-rs/canvas-darwin-arm64": "^0.1.100",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.3.0",

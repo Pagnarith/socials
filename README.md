@@ -48,10 +48,13 @@ socials/
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14 (Dashboard)
-- **Bot:** Node.js + Telegraf
+- **Frontend:** Next.js 14 dashboard on GitHub Pages ([social.chakriya.net](https://social.chakriya.net))
+- **Live metrics API:** Vercel (`/api/analytics/overview`) using YouTube / Meta / Telegram tokens
+- **Bot:** Node.js + Telegraf (same Vercel project)
 - **Database:** Microsoft Dataverse
 - **APIs:** YouTube, Facebook/Instagram Graph, TikTok, Telegram
+
+Dashboard cards refresh from `NEXT_PUBLIC_METRICS_API_BASE` (default `https://socials-seven-beta.vercel.app`) every 5 minutes.
 
 ## Getting Started
 

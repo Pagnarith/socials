@@ -1,10 +1,16 @@
-const milestones = [
+'use client';
+
+import { useEffect, useState } from 'react';
+import { fetchOverviewMetrics } from '../lib/metrics';
+
+const BASE = [
   {
     platform: 'YouTube',
     icon: '📺',
+    key: 'youtube',
     requirements: [
-      { label: '1,000 subscribers', current: 0, target: 1000, unit: 'subs' },
-      { label: '4,000 watch hours', current: 0, target: 4000, unit: 'hrs' },
+      { label: '1,000 subscribers', field: 'subscribers', target: 1000, unit: 'subs' },
+      { label: '4,000 watch hours', field: 'watchHours', target: 4000, unit: 'hrs' },
     ],
     reward: 'YouTube Partner Program — Ad Revenue Enabled',
     color: 'border-red-300 dark:border-red-700',
@@ -12,9 +18,10 @@ const milestones = [
   {
     platform: 'Facebook',
     icon: '📘',
+    key: 'facebook',
     requirements: [
-      { label: '10,000 page followers', current: 0, target: 10000, unit: 'followers' },
-      { label: '600,000 min viewed (60 days)', current: 0, target: 600000, unit: 'min' },
+      { label: '10,000 page followers', field: 'followers', target: 10000, unit: 'followers' },
+      { label: '600,000 min viewed (60 days)', field: 'minutesViewed', target: 600000, unit: 'min' },
     ],
     reward: 'Facebook In-Stream Ads — Monetization Enabled',
     color: 'border-blue-300 dark:border-blue-700',
@@ -22,9 +29,10 @@ const milestones = [
   {
     platform: 'Instagram',
     icon: '📸',
+    key: 'instagram',
     requirements: [
-      { label: '10,000 followers', current: 0, target: 10000, unit: 'followers' },
-      { label: 'Professional account setup', current: 0, target: 1, unit: 'status' },
+      { label: '10,000 followers', field: 'followers', target: 10000, unit: 'followers' },
+      { label: 'Professional account setup', field: 'professional', target: 1, unit: 'status' },
     ],
     reward: 'Instagram Reels Bonus & Branded Content',
     color: 'border-pink-300 dark:border-pink-700',
@@ -32,9 +40,10 @@ const milestones = [
   {
     platform: 'TikTok',
     icon: '📱',
+    key: 'tiktok',
     requirements: [
-      { label: '10,000 followers', current: 0, target: 10000, unit: 'followers' },
-      { label: '100,000 views (30 days)', current: 0, target: 100000, unit: 'views' },
+      { label: '10,000 followers', field: 'followers', target: 10000, unit: 'followers' },
+      { label: '100,000 views (30 days)', field: 'views', target: 100000, unit: 'views' },
     ],
     reward: 'TikTok Creativity Program — Creator Revenue',
     color: 'border-gray-300 dark:border-gray-600',
@@ -42,22 +51,50 @@ const milestones = [
   {
     platform: 'App Store',
     icon: '📚',
+    key: 'appStore',
     requirements: [
-      { label: 'Homework Palette downloads', current: 0, target: 1000, unit: 'downloads' },
-      { label: 'Palette Pro subscribers', current: 0, target: 50, unit: 'subs' },
+      { label: 'Homework Palette downloads', field: 'downloads', target: 1000, unit: 'downloads' },
+      { label: 'Palette Pro subscribers', field: 'proSubs', target: 50, unit: 'subs' },
     ],
     reward: 'Sustainable App Store growth for free library + Pro quizzes',
     color: 'border-violet-300 dark:border-violet-700',
   },
 ];
 
+function currentFor(platform, field) {
+  if (!platform?.ok) {
+    if (field === 'professional' && platform?.ok === false) return 0;
+    return 0;
+  }
+  if (field === 'professional') return 1;
+  const value = platform[field];
+  return typeof value === 'number' ? value : 0;
+}
+
 export function MilestoneTracker() {
+  const [platforms, setPlatforms] = useState({});
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchOverviewMetrics({ signal: controller.signal })
+      .then((data) => setPlatforms(data.platforms || {}))
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {milestones.map((milestone) => {
-        const overallProgress = milestone.requirements.reduce((sum, req) => {
-          return sum + Math.min((req.current / req.target) * 100, 100);
-        }, 0) / milestone.requirements.length;
+      {BASE.map((milestone) => {
+        const live = platforms[milestone.key] || {};
+        const requirements = milestone.requirements.map((req) => ({
+          ...req,
+          current: currentFor(live, req.field),
+        }));
+
+        const overallProgress =
+          requirements.reduce((sum, req) => {
+            return sum + Math.min((req.current / req.target) * 100, 100);
+          }, 0) / requirements.length;
 
         return (
           <div key={milestone.platform} className={`bg-white dark:bg-gray-800 rounded-xl border-2 ${milestone.color} p-5`}>
@@ -77,19 +114,18 @@ export function MilestoneTracker() {
             </div>
 
             <div className="space-y-3">
-              {milestone.requirements.map((req, i) => {
+              {requirements.map((req, i) => {
                 const progress = Math.min((req.current / req.target) * 100, 100);
                 return (
                   <div key={i}>
                     <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                       <span>{req.label}</span>
-                      <span>{req.current.toLocaleString()} / {req.target.toLocaleString()}</span>
+                      <span>
+                        {req.current.toLocaleString()} / {req.target.toLocaleString()}
+                      </span>
                     </div>
                     <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
-                      <div
-                        className="bg-violet-400 h-1.5 rounded-full"
-                        style={{ width: `${progress}%` }}
-                      />
+                      <div className="bg-violet-400 h-1.5 rounded-full" style={{ width: `${progress}%` }} />
                     </div>
                   </div>
                 );
