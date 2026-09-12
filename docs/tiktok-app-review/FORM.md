@@ -50,31 +50,22 @@ Add exactly that URI (https, no query, no hash).
 ## App review — products & scopes explanation (paste)
 
 ```
-Homework Palette is a free education app for families (grades 1–6 homework,
-Khmer & English). Chakriya runs Social Ops at https://social.chakriya.net/ to
-manage our official social accounts.
+Homework Palette is a free grades 1–6 homework app (Khmer & English). Chakriya runs Social Ops at https://social.chakriya.net/ for our official accounts.
 
-Product: Login Kit
-We use Login Kit on the web so an authorized admin can connect our own TikTok
-account @homeworkpalette. Flow:
-
-1) Admin opens https://social.chakriya.net/connect-tiktok/
-2) Clicks “Connect TikTok” → https://socials-seven-beta.vercel.app/api/tiktok/authorize
-3) TikTok login + consent for the scopes below
-4) Callback stores tokens for server-side metrics
-5) Dashboard Platform Overview / Analytics shows TikTok follower and engagement stats
+Login Kit: an admin connects our own @homeworkpalette TikTok account.
+1) Open https://social.chakriya.net/connect-tiktok/
+2) Click Connect TikTok → authorize on TikTok
+3) Callback returns to our server; dashboard shows account stats
 
 Scopes:
-• user.info.basic — identify the connected account (open_id, display name, avatar)
-• user.info.profile — show username/bio context for the official brand account
-• user.info.stats — read follower_count, likes_count, following_count, video_count
-  for ops KPIs on social.chakriya.net
+• user.info.basic — open_id, display name, avatar for the connected account
+• user.info.profile — username/bio for the official brand account
+• user.info.stats — follower_count, likes_count, following_count, video_count for ops KPIs
 
-We do not request posting, messaging, or other users’ data. Login Kit is only
-for our official account metrics, not for end-user login inside the iOS homework app.
+No posting, messaging, or other users’ data. Not used for end-user login in the iOS app—only official account metrics.
 ```
 
-(~980 characters — trim if the form counter differs)
+(~730 characters)
 
 ---
 
