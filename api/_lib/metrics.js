@@ -203,28 +203,47 @@ async function tiktokClientToken() {
 
 async function tiktokMetrics() {
   const username = (process.env.TIKTOK_USERNAME || 'homeworkpalette').replace(/^@/, '');
-  const userAccessToken = process.env.TIKTOK_ACCESS_TOKEN?.trim();
+  let userAccessToken = process.env.TIKTOK_ACCESS_TOKEN?.trim();
+  const refreshToken = process.env.TIKTOK_REFRESH_TOKEN?.trim();
 
-  // Preferred: user OAuth token with user.info.stats
+  async function fetchUserInfo(accessToken) {
+    const url =
+      'https://open.tiktokapis.com/v2/user/info/' +
+      '?fields=display_name,username,follower_count,likes_count,video_count';
+    const data = await fetchJson(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const user = data.data?.user || data.data || {};
+    return {
+      ok: true,
+      username: user.username || username,
+      followers: num(user.follower_count),
+      views: num(user.likes_count),
+      videos: num(user.video_count),
+      source: 'user_token',
+    };
+  }
+
+  // Preferred: user OAuth token with user.info.stats (Login Kit)
   if (userAccessToken) {
     try {
-      const url =
-        'https://open.tiktokapis.com/v2/user/info/' +
-        '?fields=display_name,username,follower_count,likes_count,video_count';
-      const data = await fetchJson(url, {
-        headers: { Authorization: `Bearer ${userAccessToken}` },
-      });
-      const user = data.data?.user || data.data || {};
-      return {
-        ok: true,
-        username: user.username || username,
-        followers: num(user.follower_count),
-        views: num(user.likes_count),
-        videos: num(user.video_count),
-        source: 'user_token',
-      };
+      return await fetchUserInfo(userAccessToken);
     } catch (error) {
-      // Fall through to client credentials / research.
+      if (refreshToken) {
+        try {
+          const { refreshUserAccessToken } = await import('./tiktok-oauth.js');
+          const refreshed = await refreshUserAccessToken(refreshToken);
+          if (refreshed.access_token) {
+            // Runtime cannot persist to Vercel env; still use refreshed token for this request.
+            return {
+              ...(await fetchUserInfo(refreshed.access_token)),
+              note: 'Access token refreshed for this request — update TIKTOK_ACCESS_TOKEN / TIKTOK_REFRESH_TOKEN on Vercel via /api/cron/tiktok-refresh',
+            };
+          }
+        } catch {
+          // fall through
+        }
+      }
       if (!process.env.TIKTOK_CLIENT_KEY) {
         return { ok: false, error: error.message || 'TikTok user token failed' };
       }
