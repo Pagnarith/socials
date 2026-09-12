@@ -65,10 +65,10 @@ function buildCards(platforms = {}) {
       stats: {
         followers: formatMetric(tk.ok ? tk.followers : null),
         views: formatMetric(tk.ok ? tk.views : null),
-        status: tk.ok ? 'live' : 'needs OAuth',
+        username: tk.username ? `@${tk.username}` : '—',
       },
       goal: GOALS.tiktok,
-      error: tk.ok === false ? tk.error : null,
+      error: tk.ok === false ? tk.error : tk.note || null,
     },
     {
       name: 'Telegram',
@@ -86,12 +86,12 @@ function buildCards(platforms = {}) {
       icon: '📚',
       color: 'bg-violet-50 border-violet-200 dark:bg-violet-950 dark:border-violet-800',
       stats: {
-        downloads: formatMetric(as.ok ? as.downloads : null),
-        proSubs: formatMetric(as.ok ? as.proSubs : null),
-        status: as.ok ? 'live' : 'ASC pending',
+        version: as.ok ? `${as.version || '—'} · ${as.state || '—'}` : '—',
+        ratings: formatMetric(as.ok ? as.downloads : null),
+        proProducts: formatMetric(as.ok ? as.proSubs : null),
       },
       goal: GOALS.appStore,
-      error: as.ok === false ? as.error : null,
+      error: as.ok === false ? as.error : as.downloadsNote || null,
     },
   ];
 }

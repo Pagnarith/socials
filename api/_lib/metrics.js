@@ -177,27 +177,219 @@ async function telegramMetrics() {
   };
 }
 
+async function tiktokClientToken() {
+  const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
+  const clientSecret = process.env.TIKTOK_CLIENT_SECRET?.trim();
+  if (!clientKey || !clientSecret) {
+    throw new Error('Missing TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET');
+  }
+
+  const body = new URLSearchParams({
+    client_key: clientKey,
+    client_secret: clientSecret,
+    grant_type: 'client_credentials',
+  });
+  const data = await fetchJson('https://open.tiktokapis.com/v2/oauth/token/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Cache-Control': 'no-cache' },
+    body,
+  });
+  const token = data.access_token;
+  if (!token) {
+    throw new Error(data.error_description || data.error || 'TikTok client token failed');
+  }
+  return token;
+}
+
 async function tiktokMetrics() {
-  // Client key/secret alone cannot read follower counts without a user access token.
+  const username = (process.env.TIKTOK_USERNAME || 'homeworkpalette').replace(/^@/, '');
+  const userAccessToken = process.env.TIKTOK_ACCESS_TOKEN?.trim();
+
+  // Preferred: user OAuth token with user.info.stats
+  if (userAccessToken) {
+    try {
+      const url =
+        'https://open.tiktokapis.com/v2/user/info/' +
+        '?fields=display_name,username,follower_count,likes_count,video_count';
+      const data = await fetchJson(url, {
+        headers: { Authorization: `Bearer ${userAccessToken}` },
+      });
+      const user = data.data?.user || data.data || {};
+      return {
+        ok: true,
+        username: user.username || username,
+        followers: num(user.follower_count),
+        views: num(user.likes_count),
+        videos: num(user.video_count),
+        source: 'user_token',
+      };
+    } catch (error) {
+      // Fall through to client credentials / research.
+      if (!process.env.TIKTOK_CLIENT_KEY) {
+        return { ok: false, error: error.message || 'TikTok user token failed' };
+      }
+    }
+  }
+
   if (!process.env.TIKTOK_CLIENT_KEY) {
     return { ok: false, error: 'Missing TIKTOK_CLIENT_KEY' };
   }
-  return {
-    ok: false,
-    error: 'TikTok user OAuth not configured — follower metrics unavailable',
-    followers: null,
-    views: null,
-  };
+
+  try {
+    const clientToken = await tiktokClientToken();
+
+    // Research API (requires research.data.basic on the TikTok app).
+    const research = await fetch('https://open.tiktokapis.com/v2/research/user/info/?fields=display_name,follower_count,likes_count,video_count', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${clientToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    const researchData = await research.json().catch(() => ({}));
+    if (research.ok && !researchData.error?.code) {
+      const user = researchData.data || {};
+      return {
+        ok: true,
+        username,
+        followers: num(user.follower_count),
+        views: num(user.likes_count),
+        videos: num(user.video_count),
+        source: 'research_api',
+      };
+    }
+
+    const researchErr =
+      researchData.error?.message ||
+      researchData.error?.code ||
+      `Research API HTTP ${research.status}`;
+
+    // Client credentials validated — follower counts still need Research scope or user OAuth.
+    return {
+      ok: true,
+      username,
+      followers: null,
+      views: null,
+      videos: null,
+      source: 'client_credentials',
+      note: `Client key OK; stats need Research API or TIKTOK_ACCESS_TOKEN (${researchErr})`,
+    };
+  } catch (error) {
+    return { ok: false, error: error.message || 'TikTok metrics failed' };
+  }
+}
+
+async function loadAscPrivateKeyPem() {
+  const inline = process.env.ASC_PRIVATE_KEY?.replace(/\\n/g, '\n')?.trim();
+  if (inline) return inline;
+
+  const keyPath = process.env.ASC_PRIVATE_KEY_PATH?.trim();
+  if (!keyPath) return null;
+
+  const { readFile } = await import('node:fs/promises');
+  return readFile(keyPath, 'utf8');
+}
+
+async function makeAscToken() {
+  const issuer = process.env.ASC_ISSUER_ID?.trim();
+  const keyId = process.env.ASC_KEY_ID?.trim() || '4QC42LKSR9';
+  const pem = await loadAscPrivateKeyPem();
+  if (!issuer) throw new Error('Missing ASC_ISSUER_ID');
+  if (!pem) throw new Error('Missing ASC_PRIVATE_KEY or ASC_PRIVATE_KEY_PATH');
+
+  const { SignJWT, importPKCS8 } = await import('jose');
+  const key = await importPKCS8(pem, 'ES256');
+  const now = Math.floor(Date.now() / 1000);
+  return new SignJWT({})
+    .setProtectedHeader({ alg: 'ES256', kid: keyId, typ: 'JWT' })
+    .setIssuer(issuer)
+    .setIssuedAt(now)
+    .setExpirationTime(now + 20 * 60)
+    .setAudience('appstoreconnect-v1')
+    .sign(key);
+}
+
+async function ascGet(path, token) {
+  const res = await fetch(`https://api.appstoreconnect.apple.com/v1/${path.replace(/^\//, '')}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = data?.errors?.[0]?.detail || data?.errors?.[0]?.title || res.statusText;
+    throw new Error(message || `ASC HTTP ${res.status}`);
+  }
+  return data;
 }
 
 async function appStoreMetrics() {
-  // App Store Connect analytics need ASC API keys (not in socials .env today).
-  return {
-    ok: false,
-    error: 'App Store Connect API not configured in socials project',
-    downloads: null,
-    proSubs: null,
-  };
+  try {
+    const token = await makeAscToken();
+    const bundleId = process.env.ASC_BUNDLE_ID?.trim() || 'com.pagnarith.homeworkpalette';
+    const apps = await ascGet(`apps?filter[bundleId]=${encodeURIComponent(bundleId)}&limit=1`, token);
+    const app = apps.data?.[0];
+    if (!app) return { ok: false, error: `No ASC app for ${bundleId}` };
+
+    const appId = app.id;
+    const versions = await ascGet(
+      `apps/${appId}/appStoreVersions?filter[platform]=IOS&limit=3`,
+      token
+    );
+    const latest = versions.data?.[0];
+    const versionString = latest?.attributes?.versionString || null;
+    const state = latest?.attributes?.appStoreState || null;
+
+    const products = {};
+    let approvedPro = 0;
+    const groups = await ascGet(`apps/${appId}/subscriptionGroups?limit=10`, token);
+    for (const group of groups.data || []) {
+      const subs = await ascGet(`subscriptionGroups/${group.id}/subscriptions?limit=20`, token);
+      for (const sub of subs.data || []) {
+        const productId = sub.attributes?.productId;
+        const subState = sub.attributes?.state;
+        if (productId) {
+          products[productId] = subState;
+          if (String(productId).startsWith('palette.pro') && subState === 'APPROVED') {
+            approvedPro += 1;
+          }
+        }
+      }
+    }
+
+    // Public App Store listing (no private download totals — those need Sales/Analytics reports).
+    let ratingCount = null;
+    let averageRating = null;
+    try {
+      const lookup = await fetchJson(
+        `https://itunes.apple.com/lookup?bundleId=${encodeURIComponent(bundleId)}`
+      );
+      const item = lookup.results?.[0];
+      if (item) {
+        ratingCount = num(item.userRatingCount);
+        averageRating = item.averageUserRating ?? null;
+      }
+    } catch {
+      // Optional.
+    }
+
+    return {
+      ok: true,
+      name: app.attributes?.name || 'Homework Palette',
+      bundleId,
+      version: versionString,
+      state,
+      downloads: ratingCount, // proxy until Sales Reports vendor number is wired
+      downloadsNote: 'Showing App Store rating count (download totals need ASC Sales Reports)',
+      proSubs: approvedPro,
+      products,
+      averageRating,
+      source: 'app_store_connect',
+    };
+  } catch (error) {
+    return { ok: false, error: error.message || 'App Store Connect metrics failed' };
+  }
 }
 
 export async function collectOverviewMetrics() {
