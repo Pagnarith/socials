@@ -46,6 +46,7 @@ export default async function handler(req, res) {
   const parsed = parseOAuthState(String(state || ''));
   const stateOk = parsed.ok && (!cookieState || cookieState === String(state));
   const env = parsed.env || cookies.tiktok_oauth_env || 'production';
+  const trailingSlash = cookies.tiktok_oauth_slash === '1';
 
   if (!stateOk) {
     return res.status(400).send(
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const token = await exchangeAuthorizationCode(String(code), env);
+    const token = await exchangeAuthorizationCode(String(code), env, { trailingSlash });
     const accessToken = token.access_token;
     const refreshToken = token.refresh_token;
     const openId = token.open_id;

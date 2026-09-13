@@ -7,8 +7,8 @@ import {
 
 /**
  * Start TikTok Login Kit for @homeworkpalette.
- * GET /api/tiktok/authorize
- * GET /api/tiktok/authorize?env=sandbox  ← use while Production is In review
+ * GET /api/tiktok/authorize?env=sandbox
+ * Optional: &slash=1 (trailing slash on redirect_uri) &minimal=1 (user.info.basic only)
  */
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -16,14 +16,22 @@ export default async function handler(req, res) {
   }
 
   const env = resolveTikTokEnv(req.query?.env || req.query?.sandbox);
+  const trailingSlash =
+    req.query?.slash === '1' ||
+    req.query?.slash === 'true' ||
+    process.env.TIKTOK_REDIRECT_TRAILING_SLASH === '1';
+  const minimal = req.query?.minimal === '1' || req.query?.minimal === 'true';
+  const scope = minimal ? 'user.info.basic' : undefined;
+
   try {
     const state = createOAuthState(env);
-    const url = buildAuthorizeUrl(state, env);
+    const url = buildAuthorizeUrl(state, env, { trailingSlash, scope });
     res.setHeader(
       'Set-Cookie',
       [
         `tiktok_oauth_state=${encodeURIComponent(state)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
         `tiktok_oauth_env=${env}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+        `tiktok_oauth_slash=${trailingSlash ? '1' : '0'}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
       ]
     );
     res.setHeader('Cache-Control', 'no-store');
@@ -32,13 +40,11 @@ export default async function handler(req, res) {
     return res.status(500).send(htmlPage('TikTok authorize failed', `
       <p>${escapeHtml(error.message)}</p>
       <p>Mode: <code>${escapeHtml(env)}</code></p>
-      <p>Redirect URI that must be registered in Login Kit (<strong>${escapeHtml(env)}</strong>):</p>
-      <code>${escapeHtml(tiktokRedirectUri())}</code>
-      <p>While Production is <em>In review</em>, open Sandbox in TikTok Developers, copy the
-      <strong>Sandbox</strong> client key/secret into Vercel as
-      <code>TIKTOK_SANDBOX_CLIENT_KEY</code> / <code>TIKTOK_SANDBOX_CLIENT_SECRET</code>,
-      register the same redirect URI under Sandbox Login Kit, then use
-      <a href="/api/tiktok/authorize?env=sandbox">/api/tiktok/authorize?env=sandbox</a>.</p>
+      <p>Register <strong>both</strong> redirect URIs in Sandbox Login Kit:</p>
+      <pre>${escapeHtml(tiktokRedirectUri())}
+${escapeHtml(tiktokRedirectUri({ trailingSlash: true }))}</pre>
+      <p>Then <strong>Apply changes</strong> in Sandbox. Checklist:
+      <a href="/api/tiktok/status">/api/tiktok/status</a></p>
     `));
   }
 }
@@ -54,6 +60,6 @@ function escapeHtml(value) {
 function htmlPage(title, body) {
   return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
   <style>body{font-family:system-ui;max-width:720px;margin:40px auto;padding:0 16px;line-height:1.5}
-  code{background:#f4f4f5;padding:2px 6px;border-radius:4px}</style></head>
+  code,pre{background:#f4f4f5;padding:2px 6px;border-radius:4px} pre{padding:12px;overflow:auto}</style></head>
   <body><h1>${escapeHtml(title)}</h1>${body}</body></html>`;
 }

@@ -12,14 +12,25 @@ export const TIKTOK_SCOPES = 'user.info.basic,user.info.profile,user.info.stats'
 export const TIKTOK_AUTH_URL = 'https://www.tiktok.com/v2/auth/authorize/';
 export const TIKTOK_TOKEN_URL = 'https://open.tiktokapis.com/v2/oauth/token/';
 
-export function tiktokRedirectUri() {
-  const base = (
-    process.env.TIKTOK_REDIRECT_URI ||
-    process.env.TELEGRAM_WEBHOOK_BASE_URL ||
-    'https://socials-seven-beta.vercel.app'
-  ).replace(/\/$/, '');
-  if (base.includes('/api/tiktok/callback')) return base;
-  return `${base}/api/tiktok/callback`;
+export function tiktokRedirectUri(options = {}) {
+  const configured = process.env.TIKTOK_REDIRECT_URI?.trim();
+  let uri;
+  if (configured) {
+    uri = configured.replace(/\/$/, '');
+    if (configured.includes('/api/tiktok/callback')) {
+      uri = configured.split('?')[0].replace(/\/$/, '');
+    }
+  } else {
+    const base = (
+      process.env.TELEGRAM_WEBHOOK_BASE_URL ||
+      'https://socials-seven-beta.vercel.app'
+    ).replace(/\/$/, '');
+    uri = base.includes('/api/tiktok/callback')
+      ? base.split('?')[0].replace(/\/$/, '')
+      : `${base}/api/tiktok/callback`;
+  }
+  if (options.trailingSlash) return `${uri}/`;
+  return uri;
 }
 
 export function resolveTikTokEnv(raw) {
@@ -112,7 +123,7 @@ export function verifyOAuthState(state) {
   return parseOAuthState(state).ok;
 }
 
-export async function exchangeAuthorizationCode(code, env = 'production') {
+export async function exchangeAuthorizationCode(code, env = 'production', options = {}) {
   const { clientKey, clientSecret } = getTikTokCredentials(env);
 
   const body = new URLSearchParams({
@@ -120,7 +131,7 @@ export async function exchangeAuthorizationCode(code, env = 'production') {
     client_secret: clientSecret,
     code,
     grant_type: 'authorization_code',
-    redirect_uri: tiktokRedirectUri(),
+    redirect_uri: tiktokRedirectUri({ trailingSlash: Boolean(options.trailingSlash) }),
   });
 
   const res = await fetch(TIKTOK_TOKEN_URL, {
@@ -169,14 +180,15 @@ export async function refreshUserAccessToken(refreshToken, env = 'production') {
   return data;
 }
 
-export function buildAuthorizeUrl(state, env = 'production') {
+export function buildAuthorizeUrl(state, env = 'production', options = {}) {
   const { clientKey } = getTikTokCredentials(env);
+  const redirectUri = tiktokRedirectUri({ trailingSlash: Boolean(options.trailingSlash) });
 
   const params = new URLSearchParams({
     client_key: clientKey,
-    scope: TIKTOK_SCOPES,
+    scope: options.scope || TIKTOK_SCOPES,
     response_type: 'code',
-    redirect_uri: tiktokRedirectUri(),
+    redirect_uri: redirectUri,
     state,
     disable_auto_auth: '1',
   });
