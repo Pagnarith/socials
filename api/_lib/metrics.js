@@ -532,12 +532,207 @@ async function fetchAscSalesReport(token, vendorNumber, { frequency, reportDate 
   return parseAscSalesTsv(text, opts);
 }
 
-async function ascDownloadTotals(token, bundleId) {
+function parseAnalyticsDownloadsTsv(tsvText) {
+  const lines = tsvText.trim().split(/\r?\n/);
+  if (lines.length < 2) return { firstTime: 0, redownloads: 0, total: 0 };
+
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+  const headers = lines[0].split(delim).map((h) => h.trim().toLowerCase());
+  const idx = (...names) => {
+    for (const name of names) {
+      const i = headers.findIndex((h) => h === name || h.includes(name));
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
+
+  const typeIdx = idx('download type', 'download_type', 'event');
+  const countsIdx = idx('counts', 'count', 'total downloads', 'downloads', 'units');
+  const firstIdx = idx('first time downloads', 'first-time downloads', 'first_time_downloads');
+  const reIdx = idx('redownloads', 're-downloads');
+  const totalIdx = idx('total downloads', 'total_downloads');
+
+  let firstTime = 0;
+  let redownloads = 0;
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(delim);
+    if (firstIdx >= 0 || reIdx >= 0 || totalIdx >= 0) {
+      if (firstIdx >= 0) firstTime += num(cols[firstIdx]);
+      if (reIdx >= 0) redownloads += num(cols[reIdx]);
+      continue;
+    }
+    const type = (typeIdx >= 0 ? cols[typeIdx] : '').toLowerCase();
+    const count = countsIdx >= 0 ? num(cols[countsIdx]) : 0;
+    if (/first/.test(type)) firstTime += count;
+    else if (/re-?download/.test(type)) redownloads += count;
+    else if (type) firstTime += count; // unknown typed rows still count toward acquisition
+  }
+
+  return {
+    firstTime,
+    redownloads,
+    total: firstTime + redownloads || firstTime,
+  };
+}
+
+async function listAllAsc(path, token) {
+  const items = [];
+  let next = `https://api.appstoreconnect.apple.com${path.startsWith('/v1/') ? path : `/v1/${path}`}`;
+  while (next) {
+    const res = await fetch(next, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(ASC_SALES_TIMEOUT_MS),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message = data?.errors?.[0]?.detail || data?.errors?.[0]?.title || res.statusText;
+      throw new Error(message || `ASC HTTP ${res.status}`);
+    }
+    items.push(...(data.data || []));
+    next = data.links?.next || null;
+  }
+  return items;
+}
+
+async function ensureAnalyticsReportRequest(token, appId) {
+  const configured = process.env.ASC_ANALYTICS_REQUEST_ID?.trim();
+  if (configured) return configured;
+
+  const existing = await listAllAsc(`/v1/apps/${appId}/analyticsReportRequests?limit=20`, token);
+  const ongoing = existing.find((r) => r.attributes?.accessType === 'ONGOING');
+  if (ongoing?.id) return ongoing.id;
+
+  const res = await fetch('https://api.appstoreconnect.apple.com/v1/analyticsReportRequests', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'analyticsReportRequests',
+        attributes: { accessType: 'ONGOING' },
+        relationships: { app: { data: { type: 'apps', id: appId } } },
+      },
+    }),
+    signal: AbortSignal.timeout(ASC_SALES_TIMEOUT_MS),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = data?.errors?.[0]?.detail || data?.errors?.[0]?.title || res.statusText;
+    throw new Error(message || `ASC analytics request HTTP ${res.status}`);
+  }
+  return data.data?.id || null;
+}
+
+async function ascAnalyticsDownloads(token, appId) {
+  const requestId = await ensureAnalyticsReportRequest(token, appId);
+  if (!requestId) {
+    return {
+      downloads: null,
+      firstTimeDownloads: null,
+      redownloads: null,
+      downloadsNote: 'Could not create ASC Analytics report request',
+      downloadsSource: null,
+    };
+  }
+
+  const reports = await listAllAsc(
+    `/v1/analyticsReportRequests/${requestId}/reports?limit=200`,
+    token
+  );
+  const downloadReport =
+    reports.find((r) => r.attributes?.name === 'App Downloads Standard') ||
+    reports.find((r) => /app downloads standard/i.test(r.attributes?.name || ''));
+
+  if (!downloadReport) {
+    return {
+      downloads: null,
+      firstTimeDownloads: null,
+      redownloads: null,
+      downloadsNote: 'ASC Analytics: App Downloads Standard report not listed yet',
+      downloadsSource: null,
+      analyticsRequestId: requestId,
+    };
+  }
+
+  const instances = await listAllAsc(
+    `/v1/analyticsReports/${downloadReport.id}/instances?limit=50`,
+    token
+  );
+  if (!instances.length) {
+    return {
+      downloads: null,
+      firstTimeDownloads: null,
+      redownloads: null,
+      downloadsNote:
+        'ASC Analytics App Downloads requested — first file in ~24–48h (matches App Analytics UI; Sales Reports omit free downloads)',
+      downloadsSource: null,
+      analyticsRequestId: requestId,
+    };
+  }
+
+  // Prefer daily instances, newest first.
+  const sorted = [...instances].sort((a, b) =>
+    String(b.attributes?.processingDate || '').localeCompare(String(a.attributes?.processingDate || ''))
+  );
+
+  let firstTime = 0;
+  let redownloads = 0;
+  let files = 0;
+
+  for (const inst of sorted.slice(0, 40)) {
+    const segments = await listAllAsc(
+      `/v1/analyticsReportInstances/${inst.id}/segments?limit=20`,
+      token
+    );
+    for (const seg of segments) {
+      const url = seg.attributes?.url;
+      if (!url) continue;
+      const fileRes = await fetch(url, { signal: AbortSignal.timeout(ASC_SALES_TIMEOUT_MS) });
+      if (!fileRes.ok) continue;
+      const buf = Buffer.from(await fileRes.arrayBuffer());
+      let text;
+      try {
+        text = gunzipSync(buf).toString('utf8');
+      } catch {
+        text = buf.toString('utf8');
+      }
+      const parsed = parseAnalyticsDownloadsTsv(text);
+      firstTime += parsed.firstTime;
+      redownloads += parsed.redownloads;
+      files += 1;
+    }
+  }
+
+  if (!files) {
+    return {
+      downloads: null,
+      firstTimeDownloads: null,
+      redownloads: null,
+      downloadsNote: 'ASC Analytics download segments not ready yet',
+      downloadsSource: null,
+      analyticsRequestId: requestId,
+    };
+  }
+
+  return {
+    downloads: firstTime, // Platform Overview “Downloads” = first-time (matches ASC Acquisition)
+    firstTimeDownloads: firstTime,
+    redownloads,
+    downloadsNote: null,
+    downloadsSource: 'asc_analytics_downloads',
+    analyticsRequestId: requestId,
+  };
+}
+
+async function ascSalesDownloadTotals(token, bundleId) {
   const vendorNumber = process.env.ASC_VENDOR_NUMBER?.trim();
   if (!vendorNumber) {
     return {
       downloads: null,
-      downloadsNote: 'Set ASC_VENDOR_NUMBER for Sales Reports download totals',
+      downloadsNote: 'Set ASC_VENDOR_NUMBER for Sales Reports fallback',
       downloadsSource: null,
     };
   }
@@ -550,7 +745,6 @@ async function ascDownloadTotals(token, bundleId) {
   let downloads = 0;
   const errors = [];
 
-  // Prior full years (YEARLY).
   for (const y of [year - 1, year - 2]) {
     try {
       downloads += await fetchAscSalesReport(
@@ -564,8 +758,6 @@ async function ascDownloadTotals(token, bundleId) {
     }
   }
 
-  // Current year: prefer YEARLY; if empty/404, sum MONTHLY Jan…current month
-  // (mid-year apps often have no YEARLY file yet).
   let currentYear = 0;
   try {
     currentYear = await fetchAscSalesReport(
@@ -596,7 +788,6 @@ async function ascDownloadTotals(token, bundleId) {
 
   downloads += currentYear;
 
-  // Only fail hard if every request errored (not mere empty/404 → 0).
   if (downloads === 0 && errors.length > 0 && errors.length >= 2 + month) {
     return {
       downloads: null,
@@ -607,9 +798,44 @@ async function ascDownloadTotals(token, bundleId) {
 
   return {
     downloads,
-    downloadsNote: null,
+    downloadsNote:
+      downloads === 0
+        ? 'Sales Reports show 0 (free downloads live in ASC Analytics, not Sales units)'
+        : null,
     downloadsSource: 'asc_sales_reports',
   };
+}
+
+async function ascDownloadTotals(token, appId, bundleId) {
+  // Prefer Analytics Reports — same source as App Store Connect → Analytics Acquisition.
+  try {
+    const analytics = await ascAnalyticsDownloads(token, appId);
+    if (analytics.downloads != null) return analytics;
+    // Keep analytics waiting note if Sales also empty.
+    const sales = await ascSalesDownloadTotals(token, bundleId);
+    if (sales.downloads) return sales;
+    return {
+      ...analytics,
+      downloads: sales.downloads,
+      downloadsNote: analytics.downloadsNote || sales.downloadsNote,
+      downloadsSource: analytics.downloadsSource || sales.downloadsSource,
+    };
+  } catch (error) {
+    const sales = await ascSalesDownloadTotals(token, bundleId);
+    if (sales.downloads != null) {
+      return {
+        ...sales,
+        downloadsNote:
+          sales.downloadsNote ||
+          `Analytics fallback: ${error.message || error}`,
+      };
+    }
+    return {
+      downloads: null,
+      downloadsNote: error.message || 'ASC download metrics failed',
+      downloadsSource: null,
+    };
+  }
 }
 
 async function appStoreMetrics() {
@@ -661,7 +887,7 @@ async function appStoreMetrics() {
       // Optional.
     }
 
-    const sales = await ascDownloadTotals(token, bundleId);
+    const sales = await ascDownloadTotals(token, appId, bundleId);
 
     return {
       ok: true,
@@ -670,8 +896,11 @@ async function appStoreMetrics() {
       version: versionString,
       state,
       downloads: sales.downloads,
+      firstTimeDownloads: sales.firstTimeDownloads ?? null,
+      redownloads: sales.redownloads ?? null,
       downloadsNote: sales.downloadsNote,
       downloadsSource: sales.downloadsSource,
+      analyticsRequestId: sales.analyticsRequestId || null,
       ratings,
       averageRating,
       proSubs: approvedPro,

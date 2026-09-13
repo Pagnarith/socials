@@ -1,39 +1,34 @@
-# App Store Connect — Sales Reports (downloads)
+# App Store Connect — downloads (Analytics vs Sales)
 
-Platform Overview **Downloads** come from ASC **Sales Reports** (not iTunes rating count).
+App Store Connect **Analytics → Acquisition** (first-time downloads / redownloads) is **not** the same feed as **Sales and Trends / Sales Reports**.
 
-## Env
+| Source | What it counts | Our use |
+|--------|----------------|---------|
+| **Analytics Reports API** (`App Downloads Standard`) | First-time downloads + redownloads (matches Analytics UI) | **Preferred** for Platform Overview Downloads |
+| **Sales Reports** (`SALES` SUMMARY) | Paid units / commerce rows | Fallback only — free apps often show **0** here |
+
+## Why you saw 3 downloads in Analytics but 0 on the dashboard
+
+Homework Palette is free. Analytics correctly shows acquisition (e.g. 3 first-time + 3 redownloads). Sales Reports had no paid “sales” rows for those days → API returned 404 / 0.
+
+## Setup
+
+1. Vendor number (Sales fallback): `ASC_VENDOR_NUMBER` — already set (`93766104`).
+2. Analytics request (preferred):
 
 ```bash
-ASC_ISSUER_ID=...
-ASC_KEY_ID=...
-ASC_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----"
-ASC_BUNDLE_ID=com.pagnarith.homeworkpalette
-ASC_VENDOR_NUMBER=12345678   # required for downloads
-# Optional: filter Sales TSV rows by SKU
-# ASC_SKU=HomeworkPalette
+# Created automatically on first metrics call, or set explicitly:
+ASC_ANALYTICS_REQUEST_ID=258668ea-18c8-45e7-9add-de1dcc862c99
 ```
 
-**Vendor number:** App Store Connect → **Payments and Financial Reports** (or **Sales and Trends** → Reports) — top-left under your Legal Entity Name (usually an 8-digit number).
+Apple needs **~24–48 hours** after the first `ONGOING` / `ONE_TIME_SNAPSHOT` request before `App Downloads Standard` instances appear.
 
 ```bash
-# Probe + set on Vercel
-node scripts/set-asc-vendor-number.js --vendor YOUR_NUMBER
+node scripts/set-asc-vendor-number.js --vendor 93766104   # already done
+vercel env add ASC_ANALYTICS_REQUEST_ID production --force
+# paste: 258668ea-18c8-45e7-9add-de1dcc862c99
 vercel deploy --prod --yes
 ```
-
-## What the API does
-
-`GET /v1/salesReports` with:
-
-- `filter[reportType]=SALES`
-- `filter[reportSubType]=SUMMARY`
-- `filter[frequency]=YEARLY`
-- current year + prior 2 years
-
-Gzip TSV is parsed; **Units** are summed for app download product types `1`, `1F`, `1T`, `F1` (excludes updates / IAP).
-
-Ratings remain from public iTunes lookup (`userRatingCount`). **Pro products** = count of approved `palette.pro*` IAPs (not active subscribers).
 
 ## Verify
 
@@ -42,5 +37,17 @@ curl -sS https://socials-seven-beta.vercel.app/api/analytics/overview \
   | jq .platforms.appStore
 ```
 
-Expect `downloadsSource: "asc_sales_reports"` and `downloadsNote: null` when vendor number + key are valid.
-Without `ASC_VENDOR_NUMBER`, `downloads` is `null` and the amber note asks you to set it.
+Until instances exist:
+
+- `downloadsNote` mentions Analytics requested / waiting 24–48h  
+- `downloads` may be `null` or Sales `0`
+
+When ready:
+
+- `downloadsSource: "asc_analytics_downloads"`
+- `downloads` ≈ first-time downloads (Acquisition)
+- `firstTimeDownloads` / `redownloads` also returned
+
+## API key role
+
+Admin (or Sales) key that can create analytics report requests and download reports.
