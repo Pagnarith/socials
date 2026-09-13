@@ -105,7 +105,7 @@ async function checkFacebookInsights() {
     const since = Math.floor(Date.now() / 1000) - 7 * 24 * 3600;
     const url =
       `${GRAPH}/${pageId}/insights` +
-      `?metric=page_impressions_unique,page_video_view_time` +
+      `?metric=page_total_media_view_unique` +
       `&period=day&since=${since}&access_token=${encodeURIComponent(token)}`;
     const res = await fetch(url);
     const data = await res.json();

@@ -134,21 +134,42 @@ async function facebookMetrics() {
   let reach = null;
   let minutesViewed = null;
   let insightsError = null;
-  try {
+
+  async function sumInsightMetric(metric) {
     const since = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
     const insights = await fetchJson(
       `${GRAPH}/${pageId}/insights` +
-        `?metric=page_impressions_unique,page_video_view_time` +
+        `?metric=${encodeURIComponent(metric)}` +
         `&period=day&since=${since}&access_token=${encodeURIComponent(token)}`
     );
-    for (const row of insights.data || []) {
-      const total = (row.values || []).reduce((sum, v) => sum + num(v.value), 0);
-      if (row.name === 'page_impressions_unique') reach = total;
-      // page_video_view_time is milliseconds
-      if (row.name === 'page_video_view_time') minutesViewed = Math.round(total / 60000);
+    const row = (insights.data || []).find((r) => r.name === metric) || insights.data?.[0];
+    return (row?.values || []).reduce((sum, v) => sum + num(v.value), 0);
+  }
+
+  // Prefer post-deprecation reach metric; fall back for older tokens/docs.
+  const reachCandidates = ['page_total_media_view_unique', 'page_media_view', 'page_impressions_unique'];
+  const reachErrors = [];
+  for (const metric of reachCandidates) {
+    try {
+      reach = await sumInsightMetric(metric);
+      break;
+    } catch (error) {
+      reachErrors.push(`${metric}: ${error.message || error}`);
     }
+  }
+
+  try {
+    // page_video_view_time is milliseconds
+    const ms = await sumInsightMetric('page_video_view_time');
+    minutesViewed = Math.round(ms / 60000);
   } catch (error) {
-    insightsError = error.message || 'Page insights failed (need read_insights App Review)';
+    reachErrors.push(`page_video_view_time: ${error.message || error}`);
+  }
+
+  if (reach == null && minutesViewed == null && reachErrors.length) {
+    insightsError = reachErrors[0];
+  } else if (reach == null && reachErrors.length) {
+    insightsError = reachErrors[0];
   }
 
   return {
@@ -203,8 +224,9 @@ async function instagramMetrics() {
         `&access_token=${encodeURIComponent(token)}`
     );
     reach = num(insights.data?.[0]?.total_value?.value ?? insights.data?.[0]?.values?.[0]?.value);
-    if (!reach && !insights.data?.length) {
+    if (!insights.data?.length) {
       insightsError = 'Instagram insights returned empty (check instagram_manage_insights / App Review)';
+      reach = null;
     }
   } catch (error) {
     insightsError = error.message || 'Instagram insights failed (need App Review scopes)';
@@ -215,7 +237,7 @@ async function instagramMetrics() {
     username: data.username || null,
     followers: num(data.followers_count),
     posts: num(data.media_count),
-    reach: reach || null,
+    reach: reach,
     engagement: null,
     insightsError,
   };

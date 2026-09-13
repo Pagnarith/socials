@@ -63,11 +63,13 @@ Our app ("socials") is a multi-platform content management dashboard that helps 
 
 ```
 GET /v19.0/{page-id}?fields=followers_count,fan_count
-GET /v19.0/{page-id}/insights?metric=page_impressions_unique,page_video_view_time&period=day
+GET /v19.0/{page-id}/insights?metric=page_total_media_view_unique&period=day
+GET /v19.0/{page-id}/insights?metric=page_video_view_time&period=day
 GET /v19.0/{ig-user-id}?fields=username,followers_count,media_count
 GET /v19.0/{ig-user-id}/insights?metric=reach&period=day&metric_type=total_value
 ```
 
+Reach uses `page_total_media_view_unique` (replacement for deprecated `page_impressions_unique`).
 **Token type:** System User Page Access Token (Business Manager)  
 **Scopes after approval:** `pages_read_engagement`, `pages_show_list`, `read_insights` (+ IG insights as required)
 
