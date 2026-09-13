@@ -49,7 +49,10 @@ socials/
 ## Tech Stack
 
 - **Frontend:** Next.js 14 dashboard on GitHub Pages ([social.chakriya.net](https://social.chakriya.net))
-- **Live metrics API:** Vercel (`/api/analytics/overview`) using YouTube / Meta / Telegram tokens
+- **Live metrics API:** Vercel (`/api/analytics/overview`) using YouTube / Meta / Telegram / TikTok / ASC tokens
+- Watch hours: [docs/youtube-analytics-oauth.md](docs/youtube-analytics-oauth.md)
+- Meta insights App Review: [docs/facebook-app-review.md](docs/facebook-app-review.md)
+- App Store downloads: [docs/asc-sales-reports.md](docs/asc-sales-reports.md)
 - **Bot:** Node.js + Telegraf (same Vercel project)
 - **Database:** Microsoft Dataverse
 - **APIs:** YouTube, Facebook/Instagram Graph, TikTok, Telegram

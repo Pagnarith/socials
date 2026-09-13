@@ -66,8 +66,9 @@ function buildPlatformAnalytics(platforms = {}) {
       icon: '📚',
       color: 'border-violet-300 dark:border-violet-700',
       metrics: [
-        { label: 'Downloads (all time)', value: as.ok ? as.downloads : 0, target: 1000, unit: 'units' },
-        { label: 'Palette Pro active', value: as.ok ? as.proSubs : 0, target: 50, unit: 'subs' },
+        { label: 'Downloads (all time)', value: as.ok && as.downloads != null ? as.downloads : 0, target: 1000, unit: 'units' },
+        { label: 'Ratings', value: as.ok ? as.ratings ?? 0 : 0, unit: '' },
+        { label: 'Pro products approved', value: as.ok ? as.proSubs : 0, target: 2, unit: '' },
       ],
     },
   ];

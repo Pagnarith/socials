@@ -54,7 +54,7 @@ const BASE = [
     key: 'appStore',
     requirements: [
       { label: 'Homework Palette downloads', field: 'downloads', target: 1000, unit: 'downloads' },
-      { label: 'Palette Pro subscribers', field: 'proSubs', target: 50, unit: 'subs' },
+      { label: 'Palette Pro products approved', field: 'proSubs', target: 2, unit: 'products' },
     ],
     reward: 'Sustainable App Store growth for free library + Pro quizzes',
     color: 'border-violet-300 dark:border-violet-700',

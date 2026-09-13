@@ -32,7 +32,7 @@ function buildCards(platforms = {}) {
         watchHours: formatMetric(yt.watchHours, yt.ok ? 'n/a' : '—'),
       },
       goal: GOALS.youtube,
-      error: yt.ok === false ? yt.error : null,
+      error: yt.ok === false ? yt.error : yt.watchHoursError || null,
     },
     {
       name: 'Facebook',
@@ -44,7 +44,7 @@ function buildCards(platforms = {}) {
         minutesViewed: formatMetric(fb.minutesViewed, fb.ok ? 'n/a' : '—'),
       },
       goal: GOALS.facebook,
-      error: fb.ok === false ? fb.error : null,
+      error: fb.ok === false ? fb.error : fb.insightsError || null,
     },
     {
       name: 'Instagram',
@@ -56,7 +56,7 @@ function buildCards(platforms = {}) {
         reach: formatMetric(ig.reach, ig.ok ? 'n/a' : '—'),
       },
       goal: GOALS.instagram,
-      error: ig.ok === false ? ig.error : null,
+      error: ig.ok === false ? ig.error : ig.insightsError || null,
     },
     {
       name: 'TikTok',
@@ -87,7 +87,8 @@ function buildCards(platforms = {}) {
       color: 'bg-violet-50 border-violet-200 dark:bg-violet-950 dark:border-violet-800',
       stats: {
         version: as.ok ? `${as.version || '—'} · ${as.state || '—'}` : '—',
-        ratings: formatMetric(as.ok ? as.downloads : null),
+        downloads: formatMetric(as.ok ? as.downloads : null, as.ok ? 'n/a' : '—'),
+        ratings: formatMetric(as.ok ? as.ratings : null),
         proProducts: formatMetric(as.ok ? as.proSubs : null),
       },
       goal: GOALS.appStore,

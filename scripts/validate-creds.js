@@ -3,9 +3,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const results = [];
+const GRAPH = 'https://graph.facebook.com/v19.0';
 
-function ok(name, msg) { results.push({name, ok: true, msg}); }
-function fail(name, msg) { results.push({name, ok: false, msg}); }
+function ok(name, msg) { results.push({ name, ok: true, msg }); }
+function fail(name, msg) { results.push({ name, ok: false, msg }); }
 
 async function checkYouTube() {
   const key = process.env.YOUTUBE_API_KEY;
@@ -18,6 +19,51 @@ async function checkYouTube() {
     const data = await res.json();
     if (res.ok && data.items && data.items.length > 0) ok(name, `Channel ${chan} found`);
     else fail(name, `API key or channel invalid (status ${res.status})`);
+  } catch (e) { fail(name, String(e)); }
+}
+
+async function checkYouTubeAnalytics() {
+  const name = 'YouTube Analytics';
+  const refresh = process.env.YOUTUBE_REFRESH_TOKEN?.trim();
+  const clientId = (process.env.YT_CLIENT_ID || process.env.YOUTUBE_CLIENT_ID || '').trim();
+  const clientSecret = (process.env.YT_CLIENT_SECRET || process.env.YOUTUBE_CLIENT_SECRET || '').trim();
+  const channelId = process.env.YOUTUBE_CHANNEL_ID;
+  if (!refresh) { fail(name, 'Missing YOUTUBE_REFRESH_TOKEN (run scripts/auth-youtube-analytics.js)'); return; }
+  if (!clientId || !clientSecret) { fail(name, 'Missing YT_CLIENT_ID / YT_CLIENT_SECRET'); return; }
+  if (!channelId) { fail(name, 'Missing YOUTUBE_CHANNEL_ID'); return; }
+  try {
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refresh,
+        grant_type: 'refresh_token',
+      }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+      fail(name, `Token refresh failed: ${tokenData.error_description || JSON.stringify(tokenData)}`);
+      return;
+    }
+    const endDate = new Date().toISOString().slice(0, 10);
+    const params = new URLSearchParams({
+      ids: `channel==${channelId}`,
+      metrics: 'estimatedMinutesWatched',
+      startDate: '2006-01-01',
+      endDate,
+    });
+    const reportRes = await fetch(`https://youtubeanalytics.googleapis.com/v2/reports?${params}`, {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const report = await reportRes.json();
+    if (!reportRes.ok) {
+      fail(name, report.error?.message || JSON.stringify(report));
+      return;
+    }
+    const minutes = Number(report.rows?.[0]?.[0] || 0);
+    ok(name, `~${Math.round(minutes / 60)} watch hours (${minutes} minutes)`);
   } catch (e) { fail(name, String(e)); }
 }
 
@@ -50,6 +96,67 @@ async function checkFacebook() {
   } catch (e) { fail(name, String(e)); }
 }
 
+async function checkFacebookInsights() {
+  const name = 'Facebook insights';
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  if (!pageId || !token) { fail(name, 'Missing FACEBOOK_PAGE_ID or FACEBOOK_PAGE_ACCESS_TOKEN'); return; }
+  try {
+    const since = Math.floor(Date.now() / 1000) - 7 * 24 * 3600;
+    const url =
+      `${GRAPH}/${pageId}/insights` +
+      `?metric=page_impressions_unique,page_video_view_time` +
+      `&period=day&since=${since}&access_token=${encodeURIComponent(token)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) {
+      fail(
+        name,
+        data?.error?.message ||
+          `HTTP ${res.status} — submit App Review for read_insights (see docs/facebook-app-review.md)`
+      );
+      return;
+    }
+    const names = (data.data || []).map((r) => r.name).join(', ') || '(empty data)';
+    ok(name, `OK: ${names}`);
+  } catch (e) { fail(name, String(e)); }
+}
+
+async function checkInstagramInsights() {
+  const name = 'Instagram insights';
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  if (!token) { fail(name, 'Missing Instagram/Facebook access token'); return; }
+  try {
+    let igId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim();
+    if (!igId && pageId) {
+      const pageRes = await fetch(
+        `${GRAPH}/${pageId}?fields=instagram_business_account&access_token=${encodeURIComponent(token)}`
+      );
+      const pageData = await pageRes.json();
+      igId = pageData.instagram_business_account?.id;
+    }
+    if (!igId) { fail(name, 'No INSTAGRAM_BUSINESS_ACCOUNT_ID / linked IG account'); return; }
+
+    const url =
+      `${GRAPH}/${igId}/insights` +
+      `?metric=reach&period=day&metric_type=total_value` +
+      `&access_token=${encodeURIComponent(token)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) {
+      fail(
+        name,
+        data?.error?.message ||
+          `HTTP ${res.status} — need Instagram insights App Review / token scopes`
+      );
+      return;
+    }
+    const value = data.data?.[0]?.total_value?.value ?? data.data?.[0]?.values?.[0]?.value;
+    ok(name, `reach=${value ?? 'empty'}`);
+  } catch (e) { fail(name, String(e)); }
+}
+
 async function checkTikTok() {
   const key = process.env.TIKTOK_CLIENT_KEY;
   const secret = process.env.TIKTOK_CLIENT_SECRET;
@@ -62,6 +169,16 @@ async function checkTikTok() {
     if (res.ok && (data.data && data.data.access_token || data.access_token)) ok(name, 'Client credentials accepted');
     else fail(name, `TikTok validation failed: ${JSON.stringify(data)}`);
   } catch (e) { fail(name, String(e)); }
+}
+
+async function checkAscSales() {
+  const name = 'ASC Sales Reports';
+  const vendor = process.env.ASC_VENDOR_NUMBER?.trim();
+  if (!vendor) {
+    fail(name, 'Missing ASC_VENDOR_NUMBER (see docs/asc-sales-reports.md)');
+    return;
+  }
+  ok(name, `ASC_VENDOR_NUMBER set (${vendor.slice(0, 2)}…)`);
 }
 
 async function checkDataverse() {
@@ -89,7 +206,17 @@ async function checkDataverse() {
 
 async function run() {
   console.log('Validating credentials (reading from .env)...\n');
-  await Promise.all([checkYouTube(), checkTelegram(), checkFacebook(), checkTikTok(), checkDataverse()]);
+  await Promise.all([
+    checkYouTube(),
+    checkYouTubeAnalytics(),
+    checkTelegram(),
+    checkFacebook(),
+    checkFacebookInsights(),
+    checkInstagramInsights(),
+    checkTikTok(),
+    checkAscSales(),
+    checkDataverse(),
+  ]);
 
   console.log('\nSummary:');
   results.forEach(r => {

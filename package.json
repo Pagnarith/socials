@@ -23,7 +23,9 @@
     "update:youtube": "node scripts/update-youtube-channel.js",
     "rebrand:socials": "node scripts/rebrand-socials.js",
     "set:telegram-webhook": "node scripts/set-telegram-webhook.js",
-    "set:tiktok-user-token": "node scripts/set-tiktok-user-token.js"
+    "set:tiktok-user-token": "node scripts/set-tiktok-user-token.js",
+    "auth:youtube-analytics": "node scripts/auth-youtube-analytics.js",
+    "set:youtube-analytics-token": "node scripts/set-youtube-analytics-token.js"
   },
   "dependencies": {
     "dotenv": "^16.0.0",

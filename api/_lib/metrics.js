@@ -3,12 +3,22 @@
  * Uses the same env vars as the Telegram media commands / scripts.
  */
 
+import { gunzipSync } from 'node:zlib';
+
 const GRAPH = 'https://graph.facebook.com/v19.0';
 const TIMEOUT_MS = 10_000;
+const ASC_SALES_TIMEOUT_MS = 30_000;
+
+/** iOS/Mac first-time (re)download product types — exclude updates / IAP. */
+const ASC_APP_DOWNLOAD_TYPES = new Set(['1', '1F', '1T', 'F1']);
 
 function num(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
+}
+
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 async function fetchJson(url, init = {}) {
@@ -18,10 +28,57 @@ async function fetchJson(url, init = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message = data?.error?.message || data?.error?.error_user_msg || res.statusText;
+    const message =
+      data?.error?.message ||
+      data?.error?.error_user_msg ||
+      data?.error_description ||
+      res.statusText;
     throw new Error(message || `HTTP ${res.status}`);
   }
   return data;
+}
+
+function youtubeOAuthClient() {
+  const clientId = (process.env.YT_CLIENT_ID || process.env.YOUTUBE_CLIENT_ID || '').trim();
+  const clientSecret = (process.env.YT_CLIENT_SECRET || process.env.YOUTUBE_CLIENT_SECRET || '').trim();
+  return { clientId, clientSecret };
+}
+
+async function refreshYouTubeAccessToken(refreshToken) {
+  const { clientId, clientSecret } = youtubeOAuthClient();
+  if (!clientId || !clientSecret) {
+    throw new Error('Missing YT_CLIENT_ID/YT_CLIENT_SECRET (or YOUTUBE_CLIENT_*)');
+  }
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+    grant_type: 'refresh_token',
+  });
+  const data = await fetchJson('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  if (!data.access_token) {
+    throw new Error(data.error_description || data.error || 'YouTube token refresh failed');
+  }
+  return data.access_token;
+}
+
+async function youtubeWatchHours(channelId, accessToken) {
+  const params = new URLSearchParams({
+    ids: `channel==${channelId}`,
+    metrics: 'estimatedMinutesWatched',
+    startDate: '2006-01-01',
+    endDate: todayUtc(),
+  });
+  const data = await fetchJson(
+    `https://youtubeanalytics.googleapis.com/v2/reports?${params}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  const minutes = num(data.rows?.[0]?.[0]);
+  return Math.round(minutes / 60);
 }
 
 async function youtubeMetrics() {
@@ -39,15 +96,27 @@ async function youtubeMetrics() {
   if (!ch) return { ok: false, error: 'YouTube channel not found' };
 
   const st = ch.statistics || {};
-  return {
+  const result = {
     ok: true,
     title: ch.snippet?.title || null,
     subscribers: num(st.subscriberCount),
     views: num(st.viewCount),
     videos: num(st.videoCount),
-    // Watch hours require YouTube Analytics OAuth — not available via Data API key alone.
     watchHours: null,
   };
+
+  const refreshToken = process.env.YOUTUBE_REFRESH_TOKEN?.trim();
+  if (!refreshToken) return result;
+
+  try {
+    const accessToken = await refreshYouTubeAccessToken(refreshToken);
+    result.watchHours = await youtubeWatchHours(channelId, accessToken);
+    result.watchHoursSource = 'youtube_analytics';
+  } catch (error) {
+    result.watchHoursError = error.message || 'YouTube Analytics failed';
+  }
+
+  return result;
 }
 
 async function facebookMetrics() {
@@ -64,6 +133,7 @@ async function facebookMetrics() {
 
   let reach = null;
   let minutesViewed = null;
+  let insightsError = null;
   try {
     const since = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
     const insights = await fetchJson(
@@ -77,8 +147,8 @@ async function facebookMetrics() {
       // page_video_view_time is milliseconds
       if (row.name === 'page_video_view_time') minutesViewed = Math.round(total / 60000);
     }
-  } catch {
-    // Insights often need extra App Review permissions — fan_count still works.
+  } catch (error) {
+    insightsError = error.message || 'Page insights failed (need read_insights App Review)';
   }
 
   return {
@@ -88,6 +158,7 @@ async function facebookMetrics() {
     fans: num(data.fan_count),
     reach,
     minutesViewed,
+    insightsError,
   };
 }
 
@@ -124,6 +195,7 @@ async function instagramMetrics() {
   );
 
   let reach = null;
+  let insightsError = null;
   try {
     const insights = await fetchJson(
       `${GRAPH}/${igId}/insights` +
@@ -131,8 +203,11 @@ async function instagramMetrics() {
         `&access_token=${encodeURIComponent(token)}`
     );
     reach = num(insights.data?.[0]?.total_value?.value ?? insights.data?.[0]?.values?.[0]?.value);
-  } catch {
-    // Optional insights permission.
+    if (!reach && !insights.data?.length) {
+      insightsError = 'Instagram insights returned empty (check instagram_manage_insights / App Review)';
+    }
+  } catch (error) {
+    insightsError = error.message || 'Instagram insights failed (need App Review scopes)';
   }
 
   return {
@@ -142,6 +217,7 @@ async function instagramMetrics() {
     posts: num(data.media_count),
     reach: reach || null,
     engagement: null,
+    insightsError,
   };
 }
 
@@ -343,6 +419,115 @@ async function ascGet(path, token) {
   return data;
 }
 
+function parseAscSalesTsv(tsvText, { skuFilter } = {}) {
+  const lines = tsvText.trim().split(/\r?\n/);
+  if (lines.length < 2) return 0;
+
+  const headers = lines[0].split('\t');
+  const idx = (name) => headers.indexOf(name);
+  const unitsIdx = idx('Units');
+  const typeIdx = idx('Product Type Identifier');
+  const skuIdx = idx('SKU');
+  if (unitsIdx < 0 || typeIdx < 0) return 0;
+
+  const skuWant = (skuFilter || '').trim().toLowerCase();
+
+  let total = 0;
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split('\t');
+    const productType = (cols[typeIdx] || '').trim();
+    if (!ASC_APP_DOWNLOAD_TYPES.has(productType)) continue;
+
+    if (skuWant) {
+      const sku = ((skuIdx >= 0 ? cols[skuIdx] : '') || '').toLowerCase();
+      if (sku !== skuWant && !sku.includes(skuWant)) continue;
+    }
+
+    total += num(cols[unitsIdx]);
+  }
+  return total;
+}
+
+async function fetchAscYearlyDownloads(token, vendorNumber, year, opts) {
+  const params = new URLSearchParams({
+    'filter[frequency]': 'YEARLY',
+    'filter[reportDate]': String(year),
+    'filter[reportSubType]': 'SUMMARY',
+    'filter[reportType]': 'SALES',
+    'filter[vendorNumber]': String(vendorNumber),
+  });
+
+  const res = await fetch(`https://api.appstoreconnect.apple.com/v1/salesReports?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/a-gzip',
+    },
+    signal: AbortSignal.timeout(ASC_SALES_TIMEOUT_MS),
+  });
+
+  if (res.status === 404) {
+    // No report for that year yet.
+    return 0;
+  }
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const message = data?.errors?.[0]?.detail || data?.errors?.[0]?.title || res.statusText;
+    throw new Error(message || `ASC Sales HTTP ${res.status}`);
+  }
+
+  const buf = Buffer.from(await res.arrayBuffer());
+  let text;
+  try {
+    text = gunzipSync(buf).toString('utf8');
+  } catch {
+    text = buf.toString('utf8');
+  }
+  return parseAscSalesTsv(text, opts);
+}
+
+async function ascDownloadTotals(token, bundleId) {
+  const vendorNumber = process.env.ASC_VENDOR_NUMBER?.trim();
+  if (!vendorNumber) {
+    return {
+      downloads: null,
+      downloadsNote: 'Set ASC_VENDOR_NUMBER for Sales Reports download totals',
+      downloadsSource: null,
+    };
+  }
+
+  const skuFilter = process.env.ASC_SKU?.trim() || '';
+  const year = new Date().getUTCFullYear();
+  const years = [year, year - 1, year - 2];
+  let downloads = 0;
+  const errors = [];
+
+  for (const y of years) {
+    try {
+      downloads += await fetchAscYearlyDownloads(token, vendorNumber, y, {
+        skuFilter,
+        bundleId,
+      });
+    } catch (error) {
+      errors.push(`${y}: ${error.message || error}`);
+    }
+  }
+
+  if (errors.length === years.length) {
+    return {
+      downloads: null,
+      downloadsNote: `ASC Sales Reports failed (${errors[0]})`,
+      downloadsSource: null,
+    };
+  }
+
+  return {
+    downloads,
+    downloadsNote: null,
+    downloadsSource: 'asc_sales_reports',
+  };
+}
+
 async function appStoreMetrics() {
   try {
     const token = await makeAscToken();
@@ -377,8 +562,7 @@ async function appStoreMetrics() {
       }
     }
 
-    // Public App Store listing (no private download totals — those need Sales/Analytics reports).
-    let ratingCount = null;
+    let ratings = null;
     let averageRating = null;
     try {
       const lookup = await fetchJson(
@@ -386,12 +570,14 @@ async function appStoreMetrics() {
       );
       const item = lookup.results?.[0];
       if (item) {
-        ratingCount = num(item.userRatingCount);
+        ratings = num(item.userRatingCount);
         averageRating = item.averageUserRating ?? null;
       }
     } catch {
       // Optional.
     }
+
+    const sales = await ascDownloadTotals(token, bundleId);
 
     return {
       ok: true,
@@ -399,11 +585,13 @@ async function appStoreMetrics() {
       bundleId,
       version: versionString,
       state,
-      downloads: ratingCount, // proxy until Sales Reports vendor number is wired
-      downloadsNote: 'Showing App Store rating count (download totals need ASC Sales Reports)',
+      downloads: sales.downloads,
+      downloadsNote: sales.downloadsNote,
+      downloadsSource: sales.downloadsSource,
+      ratings,
+      averageRating,
       proSubs: approvedPro,
       products,
-      averageRating,
       source: 'app_store_connect',
     };
   } catch (error) {
@@ -421,7 +609,7 @@ export async function collectOverviewMetrics() {
     appStoreMetrics(),
   ]);
 
-  const [youtube, facebook, instagram, tiktok, telegram, appStore] = settled.map((result, i) => {
+  const [youtube, facebook, instagram, tiktok, telegram, appStore] = settled.map((result) => {
     if (result.status === 'fulfilled') return result.value;
     return { ok: false, error: result.reason?.message || String(result.reason) };
   });
