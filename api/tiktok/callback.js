@@ -78,7 +78,7 @@ export default async function handler(req, res) {
         }
       );
       const info = await infoRes.json();
-      if (!infoRes.ok || info.error?.code) {
+      if (!infoRes.ok || (info.error?.code && info.error.code !== 'ok')) {
         profileError = info.error?.message || `user.info HTTP ${infoRes.status}`;
       } else {
         profile = info.data?.user || info.data || {};
