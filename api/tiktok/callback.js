@@ -1,16 +1,12 @@
 import {
   exchangeAuthorizationCode,
+  parseOAuthState,
   tiktokRedirectUri,
-  verifyOAuthState,
 } from '../_lib/tiktok-oauth.js';
 
 /**
  * TikTok Login Kit callback.
  * GET /api/tiktok/callback?code=...&state=...
- *
- * Exchanges the code for user tokens and shows a one-time setup page.
- * Tokens are NOT auto-written to Vercel from the public callback.
- * Use: node scripts/set-tiktok-user-token.js
  */
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -26,7 +22,8 @@ export default async function handler(req, res) {
       htmlPage(
         'TikTok authorization denied',
         `<p>${escapeHtml(errorDescription || error)}</p>
-         <p><a href="/api/tiktok/authorize">Try again</a></p>`
+         <p>If you saw <code>client_key</code> while Production is In review, use Sandbox credentials:
+         <a href="/api/tiktok/authorize?env=sandbox">Authorize (Sandbox)</a></p>`
       )
     );
   }
@@ -35,37 +32,39 @@ export default async function handler(req, res) {
     return res.status(400).send(
       htmlPage(
         'Missing authorization code',
-        `<p>Register this exact redirect URI in TikTok Login Kit:</p>
+        `<p>Register this exact redirect URI in TikTok Login Kit (Production <em>and</em> Sandbox):</p>
          <pre>${escapeHtml(tiktokRedirectUri())}</pre>
-         <p><a href="/api/tiktok/authorize">Start Login Kit</a></p>`
+         <p><a href="/api/tiktok/authorize?env=sandbox">Start Login Kit (Sandbox)</a>
+         · <a href="/api/tiktok/authorize">Production</a></p>`
       )
     );
   }
 
   const cookieHeader = req.headers.cookie || '';
-  const cookieState = parseCookie(cookieHeader).tiktok_oauth_state;
-  const stateOk =
-    verifyOAuthState(String(state || '')) &&
-    (!cookieState || cookieState === String(state));
+  const cookies = parseCookie(cookieHeader);
+  const cookieState = cookies.tiktok_oauth_state;
+  const parsed = parseOAuthState(String(state || ''));
+  const stateOk = parsed.ok && (!cookieState || cookieState === String(state));
+  const env = parsed.env || cookies.tiktok_oauth_env || 'production';
 
   if (!stateOk) {
     return res.status(400).send(
       htmlPage(
         'Invalid OAuth state',
-        `<p>CSRF check failed. Close other tabs and <a href="/api/tiktok/authorize">start again</a>.</p>`
+        `<p>CSRF check failed. Close other tabs and
+         <a href="/api/tiktok/authorize?env=sandbox">start again (Sandbox)</a>.</p>`
       )
     );
   }
 
   try {
-    const token = await exchangeAuthorizationCode(String(code));
+    const token = await exchangeAuthorizationCode(String(code), env);
     const accessToken = token.access_token;
     const refreshToken = token.refresh_token;
     const openId = token.open_id;
     const scope = token.scope || scopes || '';
     const expiresIn = token.expires_in;
 
-    // Smoke-test user.info.stats immediately.
     let profile = null;
     let profileError = null;
     try {
@@ -97,23 +96,24 @@ export default async function handler(req, res) {
 
     return res.status(200).send(
       htmlPage(
-        'TikTok Login Kit OK',
+        `TikTok Login Kit OK (${env})`,
         `
-        <p>Signed in. Copy tokens into Vercel production env (do not commit to git).</p>
+        <p>Signed in via <strong>${escapeHtml(env)}</strong>. Copy tokens into Vercel production env.</p>
         ${profileBlock}
         <p>Scopes: <code>${escapeHtml(scope)}</code> · open_id: <code>${escapeHtml(openId || '')}</code>
            · access expires in ${escapeHtml(String(expiresIn || ''))}s</p>
 
-        <h2>1. Save locally (optional)</h2>
+        <h2>1. Env block</h2>
         <pre id="envblock">TIKTOK_ACCESS_TOKEN=${escapeHtml(accessToken)}
 TIKTOK_REFRESH_TOKEN=${escapeHtml(refreshToken || '')}
-TIKTOK_OPEN_ID=${escapeHtml(openId || '')}</pre>
+TIKTOK_OPEN_ID=${escapeHtml(openId || '')}
+TIKTOK_TOKEN_ENV=${escapeHtml(env)}</pre>
         <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('envblock').innerText)">Copy env block</button>
 
         <h2>2. Push to Vercel</h2>
         <pre>cd socials
-node scripts/set-tiktok-user-token.js --access '${escapeHtml(accessToken)}' --refresh '${escapeHtml(refreshToken || '')}'</pre>
-        <p>Or paste the same values in Vercel → Project → Settings → Environment Variables, then redeploy.</p>
+node scripts/set-tiktok-user-token.js --access '${escapeHtml(accessToken)}' --refresh '${escapeHtml(refreshToken || '')}'
+vercel deploy --prod --yes</pre>
 
         <h2>3. Verify</h2>
         <pre>curl -sS https://socials-seven-beta.vercel.app/api/analytics/overview | jq .platforms.tiktok</pre>
@@ -126,8 +126,9 @@ node scripts/set-tiktok-user-token.js --access '${escapeHtml(accessToken)}' --re
       htmlPage(
         'Token exchange failed',
         `<p>${escapeHtml(error.message)}</p>
-         <p>Redirect URI used: <code>${escapeHtml(tiktokRedirectUri())}</code></p>
-         <p><a href="/api/tiktok/authorize">Try again</a></p>`
+         <p>Mode: <code>${escapeHtml(env)}</code> · Redirect URI: <code>${escapeHtml(tiktokRedirectUri())}</code></p>
+         <p>Sandbox must use <strong>Sandbox</strong> client key/secret (different from Production).</p>
+         <p><a href="/api/tiktok/authorize?env=sandbox">Try Sandbox again</a></p>`
       )
     );
   }

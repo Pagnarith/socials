@@ -1,6 +1,9 @@
 /**
  * TikTok Login Kit helpers (user OAuth).
  * Docs: https://developers.tiktok.com/doc/login-kit-web
+ *
+ * Sandbox vs Production: TikTok issues a **different** client_key/secret in Sandbox.
+ * While Production is "In review", use sandbox credentials + target users.
  */
 
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -19,6 +22,31 @@ export function tiktokRedirectUri() {
   return `${base}/api/tiktok/callback`;
 }
 
+export function resolveTikTokEnv(raw) {
+  const v = String(raw || '').toLowerCase();
+  return v === 'sandbox' || v === '1' || v === 'true' ? 'sandbox' : 'production';
+}
+
+export function getTikTokCredentials(env = 'production') {
+  const sandbox = env === 'sandbox';
+  const clientKey = (
+    sandbox ? process.env.TIKTOK_SANDBOX_CLIENT_KEY : process.env.TIKTOK_CLIENT_KEY
+  )?.trim();
+  const clientSecret = (
+    sandbox ? process.env.TIKTOK_SANDBOX_CLIENT_SECRET : process.env.TIKTOK_CLIENT_SECRET
+  )?.trim();
+
+  if (!clientKey || !clientSecret) {
+    throw new Error(
+      sandbox
+        ? 'Missing TIKTOK_SANDBOX_CLIENT_KEY / TIKTOK_SANDBOX_CLIENT_SECRET. Open TikTok Developers → Sandbox → Credentials (not Production), copy key+secret to Vercel, then redeploy.'
+        : 'Missing TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET'
+    );
+  }
+
+  return { clientKey, clientSecret, env: sandbox ? 'sandbox' : 'production' };
+}
+
 function stateSecret() {
   return (
     process.env.TIKTOK_OAUTH_STATE_SECRET ||
@@ -29,18 +57,46 @@ function stateSecret() {
   );
 }
 
-export function createOAuthState() {
+export function createOAuthState(env = 'production') {
+  const mode = resolveTikTokEnv(env);
   const nonce = randomBytes(16).toString('hex');
+  const payload = `${mode}.${nonce}`;
   const secret = stateSecret();
-  if (!secret) return nonce;
-  const sig = createHmac('sha256', secret).update(nonce).digest('hex').slice(0, 24);
-  return `${nonce}.${sig}`;
+  if (!secret) return payload;
+  const sig = createHmac('sha256', secret).update(payload).digest('hex').slice(0, 24);
+  return `${payload}.${sig}`;
 }
 
-export function verifyOAuthState(state) {
-  if (!state || typeof state !== 'string') return false;
+export function parseOAuthState(state) {
+  if (!state || typeof state !== 'string') return { ok: false };
+  const parts = state.split('.');
+  // mode.nonce.sig  OR legacy nonce.sig
+  if (parts.length === 3) {
+    const [mode, nonce, sig] = parts;
+    const secret = stateSecret();
+    if (!secret) return { ok: true, env: resolveTikTokEnv(mode) };
+    const expected = createHmac('sha256', secret)
+      .update(`${mode}.${nonce}`)
+      .digest('hex')
+      .slice(0, 24);
+    try {
+      if (!timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return { ok: false };
+    } catch {
+      return { ok: false };
+    }
+    return { ok: true, env: resolveTikTokEnv(mode) };
+  }
+  if (parts.length === 2) {
+    // Legacy production-only state
+    if (!verifyOAuthStateLegacy(state)) return { ok: false };
+    return { ok: true, env: 'production' };
+  }
+  return { ok: false };
+}
+
+function verifyOAuthStateLegacy(state) {
   const secret = stateSecret();
-  if (!secret) return true; // best-effort if no secret configured
+  if (!secret) return true;
   const [nonce, sig] = state.split('.');
   if (!nonce || !sig) return false;
   const expected = createHmac('sha256', secret).update(nonce).digest('hex').slice(0, 24);
@@ -51,12 +107,13 @@ export function verifyOAuthState(state) {
   }
 }
 
-export async function exchangeAuthorizationCode(code) {
-  const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET?.trim();
-  if (!clientKey || !clientSecret) {
-    throw new Error('Missing TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET');
-  }
+/** @deprecated use parseOAuthState */
+export function verifyOAuthState(state) {
+  return parseOAuthState(state).ok;
+}
+
+export async function exchangeAuthorizationCode(code, env = 'production') {
+  const { clientKey, clientSecret } = getTikTokCredentials(env);
 
   const body = new URLSearchParams({
     client_key: clientKey,
@@ -84,12 +141,8 @@ export async function exchangeAuthorizationCode(code) {
   return data;
 }
 
-export async function refreshUserAccessToken(refreshToken) {
-  const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET?.trim();
-  if (!clientKey || !clientSecret) {
-    throw new Error('Missing TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET');
-  }
+export async function refreshUserAccessToken(refreshToken, env = 'production') {
+  const { clientKey, clientSecret } = getTikTokCredentials(env);
 
   const body = new URLSearchParams({
     client_key: clientKey,
@@ -116,9 +169,8 @@ export async function refreshUserAccessToken(refreshToken) {
   return data;
 }
 
-export function buildAuthorizeUrl(state) {
-  const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
-  if (!clientKey) throw new Error('Missing TIKTOK_CLIENT_KEY');
+export function buildAuthorizeUrl(state, env = 'production') {
+  const { clientKey } = getTikTokCredentials(env);
 
   const params = new URLSearchParams({
     client_key: clientKey,
