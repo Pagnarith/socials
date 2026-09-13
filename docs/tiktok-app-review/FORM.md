@@ -15,6 +15,9 @@ Copy these values into the TikTok for Developers app submission form.
 | **Platforms** | ✅ **Web** (uncheck Desktop/Android/iOS unless you truly ship them) |
 | **Web/Desktop URL** | `https://social.chakriya.net/` |
 
+> **“This URL is not verified”** → ownership check is separate from the page existing.  
+> Follow **[VERIFY-URL.md](./VERIFY-URL.md)** (Domain DNS TXT recommended, or URL-prefix signature file).
+
 ### Description (119 characters)
 
 ```
