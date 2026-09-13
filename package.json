@@ -26,7 +26,8 @@
     "set:tiktok-user-token": "node scripts/set-tiktok-user-token.js",
     "auth:youtube-analytics": "node scripts/auth-youtube-analytics.js",
     "set:youtube-analytics-token": "node scripts/set-youtube-analytics-token.js",
-    "set:facebook-page-token": "node scripts/set-facebook-page-token.js"
+    "set:facebook-page-token": "node scripts/set-facebook-page-token.js",
+    "set:asc-vendor-number": "node scripts/set-asc-vendor-number.js"
   },
   "dependencies": {
     "dotenv": "^16.0.0",

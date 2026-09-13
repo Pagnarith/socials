@@ -494,10 +494,10 @@ function parseAscSalesTsv(tsvText, { skuFilter } = {}) {
   return total;
 }
 
-async function fetchAscYearlyDownloads(token, vendorNumber, year, opts) {
+async function fetchAscSalesReport(token, vendorNumber, { frequency, reportDate }, opts) {
   const params = new URLSearchParams({
-    'filter[frequency]': 'YEARLY',
-    'filter[reportDate]': String(year),
+    'filter[frequency]': frequency,
+    'filter[reportDate]': String(reportDate),
     'filter[reportSubType]': 'SUMMARY',
     'filter[reportType]': 'SALES',
     'filter[vendorNumber]': String(vendorNumber),
@@ -512,7 +512,7 @@ async function fetchAscYearlyDownloads(token, vendorNumber, year, opts) {
   });
 
   if (res.status === 404) {
-    // No report for that year yet.
+    // No report for that period yet.
     return 0;
   }
 
@@ -543,23 +543,61 @@ async function ascDownloadTotals(token, bundleId) {
   }
 
   const skuFilter = process.env.ASC_SKU?.trim() || '';
-  const year = new Date().getUTCFullYear();
-  const years = [year, year - 1, year - 2];
+  const opts = { skuFilter, bundleId };
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + 1; // 1-12
   let downloads = 0;
   const errors = [];
 
-  for (const y of years) {
+  // Prior full years (YEARLY).
+  for (const y of [year - 1, year - 2]) {
     try {
-      downloads += await fetchAscYearlyDownloads(token, vendorNumber, y, {
-        skuFilter,
-        bundleId,
-      });
+      downloads += await fetchAscSalesReport(
+        token,
+        vendorNumber,
+        { frequency: 'YEARLY', reportDate: String(y) },
+        opts
+      );
     } catch (error) {
-      errors.push(`${y}: ${error.message || error}`);
+      errors.push(`YEARLY ${y}: ${error.message || error}`);
     }
   }
 
-  if (errors.length === years.length) {
+  // Current year: prefer YEARLY; if empty/404, sum MONTHLY Jan…current month
+  // (mid-year apps often have no YEARLY file yet).
+  let currentYear = 0;
+  try {
+    currentYear = await fetchAscSalesReport(
+      token,
+      vendorNumber,
+      { frequency: 'YEARLY', reportDate: String(year) },
+      opts
+    );
+  } catch (error) {
+    errors.push(`YEARLY ${year}: ${error.message || error}`);
+  }
+
+  if (currentYear === 0) {
+    for (let m = 1; m <= month; m++) {
+      const reportDate = `${year}-${String(m).padStart(2, '0')}`;
+      try {
+        currentYear += await fetchAscSalesReport(
+          token,
+          vendorNumber,
+          { frequency: 'MONTHLY', reportDate },
+          opts
+        );
+      } catch (error) {
+        errors.push(`MONTHLY ${reportDate}: ${error.message || error}`);
+      }
+    }
+  }
+
+  downloads += currentYear;
+
+  // Only fail hard if every request errored (not mere empty/404 → 0).
+  if (downloads === 0 && errors.length > 0 && errors.length >= 2 + month) {
     return {
       downloads: null,
       downloadsNote: `ASC Sales Reports failed (${errors[0]})`,

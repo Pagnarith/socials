@@ -14,9 +14,13 @@ ASC_VENDOR_NUMBER=12345678   # required for downloads
 # ASC_SKU=HomeworkPalette
 ```
 
-**Vendor number:** App Store Connect → **Payments and Financial Reports** (or Sales and Trends) — usually an 8-digit number.
+**Vendor number:** App Store Connect → **Payments and Financial Reports** (or **Sales and Trends** → Reports) — top-left under your Legal Entity Name (usually an 8-digit number).
 
-API key role must allow **Sales and Reports** (Admin / Finance / Sales).
+```bash
+# Probe + set on Vercel
+node scripts/set-asc-vendor-number.js --vendor YOUR_NUMBER
+vercel deploy --prod --yes
+```
 
 ## What the API does
 
