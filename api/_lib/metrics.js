@@ -119,17 +119,34 @@ async function youtubeMetrics() {
   return result;
 }
 
+async function resolveFacebookPageToken(pageId, token) {
+  // Insights require a Page-scoped token. User/System User tokens can often
+  // mint one via GET /{page-id}?fields=access_token.
+  try {
+    const data = await fetchJson(
+      `${GRAPH}/${pageId}?fields=access_token&access_token=${encodeURIComponent(token)}`
+    );
+    if (data.access_token) return { token: data.access_token, source: 'page_scoped' };
+  } catch {
+    // Fall through — caller may already have a page token.
+  }
+  return { token, source: 'env' };
+}
+
 async function facebookMetrics() {
   const pageId = process.env.FACEBOOK_PAGE_ID;
-  const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-  if (!pageId || !token) {
+  const envToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  if (!pageId || !envToken) {
     return { ok: false, error: 'Missing FACEBOOK_PAGE_ID or FACEBOOK_PAGE_ACCESS_TOKEN' };
   }
 
   const fields = 'name,fan_count,followers_count,link';
   const data = await fetchJson(
-    `${GRAPH}/${pageId}?fields=${fields}&access_token=${encodeURIComponent(token)}`
+    `${GRAPH}/${pageId}?fields=${fields}&access_token=${encodeURIComponent(envToken)}`
   );
+
+  const resolved = await resolveFacebookPageToken(pageId, envToken);
+  const token = resolved.token;
 
   let reach = null;
   let minutesViewed = null;
@@ -172,6 +189,12 @@ async function facebookMetrics() {
     insightsError = reachErrors[0];
   }
 
+  if (insightsError && /Page Access Token/i.test(insightsError)) {
+    insightsError =
+      `${insightsError} — store a Page token (Business Manager → System User → Generate Page Token), ` +
+      `or run: node scripts/set-facebook-page-token.js`;
+  }
+
   return {
     ok: true,
     name: data.name || null,
@@ -180,6 +203,7 @@ async function facebookMetrics() {
     reach,
     minutesViewed,
     insightsError,
+    tokenSource: resolved.source,
   };
 }
 
