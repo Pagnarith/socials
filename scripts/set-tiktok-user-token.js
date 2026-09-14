@@ -39,16 +39,18 @@ function upsertEnv(name, value) {
 const access = arg('access') || process.env.TIKTOK_ACCESS_TOKEN || '';
 const refresh = arg('refresh') || process.env.TIKTOK_REFRESH_TOKEN || '';
 const openId = arg('open-id') || process.env.TIKTOK_OPEN_ID || '';
+const tokenEnv = arg('env') || process.env.TIKTOK_TOKEN_ENV || 'sandbox';
 
 if (!access) {
   console.error('Missing --access token. Complete Login Kit first:');
-  console.error('  https://socials-seven-beta.vercel.app/api/tiktok/authorize');
+  console.error('  https://socials-seven-beta.vercel.app/api/tiktok/authorize?env=sandbox');
   process.exit(1);
 }
 
 upsertEnv('TIKTOK_ACCESS_TOKEN', access);
 upsertEnv('TIKTOK_REFRESH_TOKEN', refresh);
 if (openId) upsertEnv('TIKTOK_OPEN_ID', openId);
+upsertEnv('TIKTOK_TOKEN_ENV', tokenEnv);
 
 console.log('\nRedeploy so serverless functions pick up env:');
 console.log('  vercel deploy --prod --yes');

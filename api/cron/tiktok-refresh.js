@@ -17,9 +17,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const token = await refreshUserAccessToken(refresh);
+    const { resolveTikTokEnv } = await import('../_lib/tiktok-oauth.js');
+    const tokenEnv = resolveTikTokEnv(process.env.TIKTOK_TOKEN_ENV || 'sandbox');
+    const token = await refreshUserAccessToken(refresh, tokenEnv);
     return res.status(200).json({
       ok: true,
+      env: tokenEnv,
       message:
         'New tokens issued. Run scripts/set-tiktok-user-token.js with these values (runtime cannot mutate Vercel env).',
       access_token: token.access_token,
@@ -30,6 +33,10 @@ export default async function handler(req, res) {
       open_id: token.open_id,
     });
   } catch (error) {
-    return res.status(500).json({ ok: false, error: error.message });
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+      hint: 'If tokens were issued in Sandbox, set TIKTOK_TOKEN_ENV=sandbox and ensure sandbox client key/secret match. Otherwise re-authorize Login Kit.',
+    });
   }
 }

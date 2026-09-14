@@ -347,23 +347,31 @@ async function tiktokMetrics() {
   }
 
   // Preferred: user OAuth token with user.info.stats (Login Kit)
+  let refreshFail = null;
   if (userAccessToken) {
     try {
       return await fetchUserInfo(userAccessToken);
     } catch (error) {
       if (refreshToken) {
         try {
-          const { refreshUserAccessToken } = await import('./tiktok-oauth.js');
-          const refreshed = await refreshUserAccessToken(refreshToken);
+          const { refreshUserAccessToken, resolveTikTokEnv } = await import('./tiktok-oauth.js');
+          const tokenEnv = resolveTikTokEnv(process.env.TIKTOK_TOKEN_ENV || 'sandbox');
+          const refreshed = await refreshUserAccessToken(refreshToken, tokenEnv);
           if (refreshed.access_token) {
             // Runtime cannot persist to Vercel env; still use refreshed token for this request.
             return {
               ...(await fetchUserInfo(refreshed.access_token)),
-              note: 'Access token refreshed for this request — update TIKTOK_ACCESS_TOKEN / TIKTOK_REFRESH_TOKEN on Vercel via /api/cron/tiktok-refresh',
+              note: `Access token refreshed (${tokenEnv}) for this request — update TIKTOK_ACCESS_TOKEN / TIKTOK_REFRESH_TOKEN on Vercel`,
             };
           }
-        } catch {
-          // fall through
+        } catch (refreshError) {
+          refreshFail = refreshError.message || String(refreshError);
+          if (!process.env.TIKTOK_CLIENT_KEY) {
+            return {
+              ok: false,
+              error: `TikTok token expired and refresh failed: ${refreshFail}`,
+            };
+          }
         }
       }
       if (!process.env.TIKTOK_CLIENT_KEY) {
@@ -415,7 +423,9 @@ async function tiktokMetrics() {
       views: null,
       videos: null,
       source: 'client_credentials',
-      note: `Client key OK; stats need Research API or TIKTOK_ACCESS_TOKEN (${researchErr})`,
+      note: refreshFail
+        ? `User token expired; sandbox refresh failed (${refreshFail}). Re-authorize: /api/tiktok/authorize?env=sandbox`
+        : `Client key OK; stats need Research API or TIKTOK_ACCESS_TOKEN (${researchErr})`,
     };
   } catch (error) {
     return { ok: false, error: error.message || 'TikTok metrics failed' };
