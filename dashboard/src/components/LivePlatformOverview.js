@@ -88,6 +88,7 @@ function buildCards(platforms = {}) {
       stats: {
         version: as.ok ? `${as.version || '—'} · ${as.state || '—'}` : '—',
         downloads: formatMetric(as.ok ? as.downloads : null, as.ok ? 'n/a' : '—'),
+        redownloads: formatMetric(as.ok ? as.redownloads : null, as.ok ? '0' : '—'),
         ratings: formatMetric(as.ok ? as.ratings : null),
         proProducts: formatMetric(as.ok ? as.proSubs : null),
       },

@@ -671,6 +671,30 @@ async function ascAnalyticsDownloads(token, appId) {
     `/v1/analyticsReports/${downloadReport.id}/instances?limit=50`,
     token
   );
+
+  // ONE_TIME_SNAPSHOT often holds history while ONGOING only has recent dailies.
+  const snapshotRequestId = process.env.ASC_ANALYTICS_SNAPSHOT_REQUEST_ID?.trim();
+  if (snapshotRequestId && snapshotRequestId !== requestId) {
+    try {
+      const snapReports = await listAllAsc(
+        `/v1/analyticsReportRequests/${snapshotRequestId}/reports?limit=200`,
+        token
+      );
+      const snapDownload =
+        snapReports.find((r) => r.attributes?.name === 'App Downloads Standard') ||
+        snapReports.find((r) => /app downloads standard/i.test(r.attributes?.name || ''));
+      if (snapDownload?.id) {
+        const snapInstances = await listAllAsc(
+          `/v1/analyticsReports/${snapDownload.id}/instances?limit=50`,
+          token
+        );
+        instances.push(...snapInstances);
+      }
+    } catch {
+      // Optional snapshot.
+    }
+  }
+
   if (!instances.length) {
     return {
       downloads: null,
@@ -683,8 +707,10 @@ async function ascAnalyticsDownloads(token, appId) {
     };
   }
 
-  // Prefer daily instances, newest first.
-  const sorted = [...instances].sort((a, b) =>
+  // Prefer daily instances, newest first (dedupe by id).
+  const byId = new Map();
+  for (const inst of instances) byId.set(inst.id, inst);
+  const sorted = [...byId.values()].sort((a, b) =>
     String(b.attributes?.processingDate || '').localeCompare(String(a.attributes?.processingDate || ''))
   );
 
@@ -692,7 +718,7 @@ async function ascAnalyticsDownloads(token, appId) {
   let redownloads = 0;
   let files = 0;
 
-  for (const inst of sorted.slice(0, 40)) {
+  for (const inst of sorted.slice(0, 60)) {
     const segments = await listAllAsc(
       `/v1/analyticsReportInstances/${inst.id}/segments?limit=20`,
       token
@@ -727,13 +753,20 @@ async function ascAnalyticsDownloads(token, appId) {
     };
   }
 
+  const partialNote =
+    sorted.length <= 2
+      ? `ASC Analytics partial (${sorted.length} file${sorted.length === 1 ? '' : 's'} so far — first-time totals catch up as daily/snapshot history arrives)`
+      : null;
+
   return {
     downloads: firstTime, // Platform Overview “Downloads” = first-time (matches ASC Acquisition)
     firstTimeDownloads: firstTime,
     redownloads,
-    downloadsNote: null,
+    totalDownloads: firstTime + redownloads,
+    downloadsNote: partialNote,
     downloadsSource: 'asc_analytics_downloads',
     analyticsRequestId: requestId,
+    analyticsInstanceCount: sorted.length,
   };
 }
 
