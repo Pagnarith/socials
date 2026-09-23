@@ -27,7 +27,8 @@
     "auth:youtube-analytics": "node scripts/auth-youtube-analytics.js",
     "set:youtube-analytics-token": "node scripts/set-youtube-analytics-token.js",
     "set:facebook-page-token": "node scripts/set-facebook-page-token.js",
-    "set:asc-vendor-number": "node scripts/set-asc-vendor-number.js"
+    "set:asc-vendor-number": "node scripts/set-asc-vendor-number.js",
+    "sync:brand-icons": "bash scripts/sync-brand-icons.sh"
   },
   "dependencies": {
     "dotenv": "^16.0.0",

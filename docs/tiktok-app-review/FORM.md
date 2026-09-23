@@ -6,7 +6,11 @@ Copy these values into the TikTok for Developers app submission form.
 
 | Field | Value |
 |-------|--------|
-| **App icon** | Upload `docs/tiktok-app-review/app-icon-1024.png` (1024×1024 PNG, Homework Palette icon) |
+| **App icon** | Upload `docs/tiktok-app-review/app-icon-1024.png` (1024×1024 PNG — **same house+tree mark** as App Store + website favicon) |
+
+> **Icon mismatch rejection:** Browser tab / site must show the **same** house+tree icon.  
+> Rebuild with `./scripts/sync-brand-icons.sh`, deploy dashboard, hard-refresh `https://social.chakriya.net/`, then resubmit.
+
 | **App name** | `Homework Palette` |
 | **Category** | Education |
 | **Description** (≤120) | see below |

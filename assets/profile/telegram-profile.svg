@@ -1,23 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#faf9fc"/>
-      <stop offset="100%" stop-color="#e8e4f8"/>
-    </linearGradient>
-    <linearGradient id="tile" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7f77dd"/>
-      <stop offset="100%" stop-color="#534ab7"/>
-    </linearGradient>
-  </defs>
-  <rect width="800" height="800" fill="url(#bg)"/>
-  <circle cx="400" cy="400" r="370" fill="none" stroke="#2aabee" stroke-width="28" opacity="0.9"/>
-  <circle cx="400" cy="400" r="340" fill="none" stroke="#fff" stroke-width="6" opacity="0.7"/>
-  <rect x="250" y="230" width="300" height="300" rx="68" fill="url(#tile)"/>
-  <path d="M310,300 C350,275 390,275 400,295 C410,275 450,275 490,300 L490,460 C450,435 410,435 400,455 C390,435 350,435 310,460 Z" fill="#fff" opacity="0.95"/>
-  <path d="M400,295 L400,455" stroke="#7f77dd" stroke-width="4" opacity="0.35"/>
-  <circle cx="330" cy="560" r="14" fill="#1d9e75"/>
-  <circle cx="370" cy="560" r="14" fill="#e0a73c"/>
-  <circle cx="410" cy="560" r="14" fill="#f08a62"/>
-  <circle cx="450" cy="560" r="14" fill="#7f77dd"/>
-  <circle cx="490" cy="560" r="14" fill="#8fcc4e"/>
+  <!-- Homework Palette app mark (house + tree)  matches App Store / TikTok icon -->
+  <rect width="800" height="800" fill="#B8D4F0"/>
+  <g transform="translate(90,110) scale(0.78)">
+    <polygon fill="#3B82F6" points="80,320 80,620 420,620 420,320 250,150"/>
+    <polygon fill="#3B82F6" points="60,330 250,140 440,330"/>
+    <rect x="290" y="400" width="80" height="220" fill="#1E3A8A"/>
+    <rect x="130" y="390" width="110" height="110" fill="#FFFFFF"/>
+    <path d="M185 390 V500 M130 445 H240" stroke="#3B82F6" stroke-width="10" fill="none"/>
+    <path d="M560 620 V360" stroke="#8B5A2B" stroke-width="36" stroke-linecap="round" fill="none"/>
+    <path d="M560 420 L500 340 M560 400 L620 330" stroke="#8B5A2B" stroke-width="28" stroke-linecap="round" fill="none"/>
+    <circle cx="560" cy="280" r="140" fill="#4ADE80"/>
+    <circle cx="480" cy="310" r="70" fill="#4ADE80"/>
+    <circle cx="640" cy="300" r="75" fill="#4ADE80"/>
+    <circle cx="560" cy="210" r="85" fill="#4ADE80"/>
+  </g>
 </svg>

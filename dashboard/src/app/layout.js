@@ -20,8 +20,15 @@ export const metadata = {
     description: 'Content calendar, revenue tracking, and platform ops for Homework Palette',
   },
   icons: {
-    icon: '/favicon.svg',
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/apple-touch-icon.png',
   },
+  // Keep brand mark aligned with App Store / TikTok developer app icon (house + tree).
+  themeColor: '#B8D4F0',
 };
 
 export default function RootLayout({ children }) {
