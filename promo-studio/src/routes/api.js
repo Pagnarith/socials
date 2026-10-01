@@ -22,6 +22,7 @@ function clipAcceptKinds(clip) {
   if (Array.isArray(clip.accept) && clip.accept.length) return clip.accept;
   if (clip.type === 'either') return ['video', 'image'];
   if (clip.type === 'image') return ['image'];
+  if (clip.type === 'audio') return ['audio'];
   return ['video'];
 }
 
@@ -31,32 +32,51 @@ function clipCandidateNames(clip) {
   }
   const primary = path.basename(clip.asset || 'asset.bin');
   const kinds = clipAcceptKinds(clip);
-  if (!(kinds.includes('video') && kinds.includes('image'))) {
-    return [primary];
+  if (kinds.includes('video') && kinds.includes('image')) {
+    const base = primary.replace(/\.[^.]+$/, '') || primary;
+    return [`${base}.mp4`, `${base}.mov`, `${base}.png`, `${base}.jpg`, `${base}.jpeg`, `${base}.webp`];
   }
-  const base = primary.replace(/\.[^.]+$/, '') || primary;
-  return [`${base}.mp4`, `${base}.mov`, `${base}.png`, `${base}.jpg`, `${base}.jpeg`, `${base}.webp`];
+  if (kinds.includes('audio') && kinds.length === 1) {
+    const base = primary.replace(/\.[^.]+$/, '') || primary;
+    return [`${base}.mp3`, `${base}.m4a`, `${base}.aac`, `${base}.wav`, primary];
+  }
+  return [primary];
 }
 
 function clipRequirement(clip) {
   const kinds = clipAcceptKinds(clip);
   const candidates = clipCandidateNames(clip);
+  const required = clip.required !== false;
   return {
     id: clip.id || clip.asset,
     type: clip.type || 'video',
     accept: kinds,
     expectedName: clip.asset,
     candidates,
+    required,
+    language: clip.language || null,
     seconds:
-      kinds.includes('image') && !kinds.includes('video')
-        ? { stillDuration: clip.duration ?? 2 }
-        : kinds.includes('video') && !kinds.includes('image')
-          ? { maxDuration: clip.maxDuration ?? null }
-          : {
-              maxDuration: clip.maxDuration ?? null,
-              stillDuration: clip.duration ?? clip.maxDuration ?? 3,
-            },
+      kinds.includes('audio')
+        ? { maxDuration: clip.maxDuration ?? null }
+        : kinds.includes('image') && !kinds.includes('video')
+          ? { stillDuration: clip.duration ?? 2 }
+          : kinds.includes('video') && !kinds.includes('image')
+            ? { maxDuration: clip.maxDuration ?? null }
+            : {
+                maxDuration: clip.maxDuration ?? null,
+                stillDuration: clip.duration ?? clip.maxDuration ?? 3,
+              },
   };
+}
+
+function templateSlots(template) {
+  return [
+    ...(template.clips || []),
+    ...(template.audio || []).map((track) => ({
+      ...track,
+      type: track.type || 'audio',
+    })),
+  ];
 }
 
 async function loadTemplate(name) {
@@ -65,7 +85,7 @@ async function loadTemplate(name) {
   const template = JSON.parse(raw);
   return {
     ...template,
-    requirements: (template.clips || []).map(clipRequirement),
+    requirements: templateSlots(template).map(clipRequirement),
   };
 }
 
@@ -101,10 +121,11 @@ async function validateTemplateAssets(template, assetMap = {}) {
   const requirements = [];
   const errors = [];
 
-  for (const clip of template.clips || []) {
+  for (const clip of templateSlots(template)) {
     const expectedName = clip.asset;
     const kinds = clipAcceptKinds(clip);
     const candidates = clipCandidateNames(clip);
+    const required = clip.required !== false;
     const asset = pickUploadedAsset(clip, uploadByName, assetMap);
     const chosenName = asset?.name || candidates[0];
     const req = {
@@ -116,24 +137,30 @@ async function validateTemplateAssets(template, assetMap = {}) {
       selectedName: chosenName,
       exists: Boolean(asset),
       valid: true,
+      required,
+      language: clip.language || null,
       issues: [],
       requiredSeconds: kinds.includes('video') && !kinds.includes('image')
         ? (clip.maxDuration ?? null)
         : kinds.includes('image') && !kinds.includes('video')
           ? (clip.duration ?? 2)
-          : (clip.maxDuration ?? clip.duration ?? null),
+          : kinds.includes('audio')
+            ? (clip.maxDuration ?? null)
+            : (clip.maxDuration ?? clip.duration ?? null),
       stillDuration: kinds.includes('image') ? (clip.duration ?? clip.maxDuration ?? 3) : null,
       asset,
     };
 
     if (!asset) {
-      req.valid = false;
-      req.issues.push(`Missing upload: need one of ${candidates.join(', ')}`);
+      if (required) {
+        req.valid = false;
+        req.issues.push(`Missing upload: need one of ${candidates.join(', ')}`);
+      }
     } else if (!kinds.includes(asset.kind)) {
       req.valid = false;
       req.issues.push(`Expected ${kinds.join(' or ')}, got ${asset.kind || 'unknown file'}`);
-    } else if (asset.kind === 'video') {
-      if (clip.maxDuration != null && asset.duration != null && asset.duration > clip.maxDuration + 0.05) {
+    } else if ((asset.kind === 'video' || asset.kind === 'audio') && clip.maxDuration != null) {
+      if (asset.duration != null && asset.duration > clip.maxDuration + 0.05) {
         req.valid = false;
         req.issues.push(`Too long: ${asset.duration.toFixed(2)}s > ${clip.maxDuration}s`);
       }
@@ -150,7 +177,7 @@ async function validateTemplateAssets(template, assetMap = {}) {
     template: template.name || null,
     assetMap: Object.fromEntries(
       requirements
-        .filter((r) => r.selectedName)
+        .filter((r) => r.selectedName && r.exists)
         .map((r) => [r.expectedName, r.selectedName]),
     ),
     requirements,
@@ -315,7 +342,7 @@ apiRouter.post('/render', async (req, res) => {
     return res.status(422).json(validation);
   }
 
-  // Resolve each clip to the uploaded file + media kind (hook may be mp4 or png).
+  // Resolve each visual clip to the uploaded file + media kind (hook may be mp4 or png).
   const resolvedClips = [];
   for (const clip of timeline.clips || []) {
     const selected = validation.requirements.find((r) => r.expectedName === clip.asset);
@@ -335,7 +362,35 @@ apiRouter.post('/render', async (req, res) => {
       maxDuration: kind === 'video' ? clip.maxDuration : undefined,
     });
   }
-  timeline = { ...timeline, clips: resolvedClips };
+
+  const resolvedAudio = [];
+  for (const track of timeline.audio || []) {
+    const selected = validation.requirements.find((r) => r.expectedName === track.asset);
+    if (!selected?.exists || !selected.selectedName) continue;
+    const workName = selected.selectedName;
+    try {
+      await fs.copyFile(path.join(UPLOADS_DIR, path.basename(workName)), path.join(workDir, workName));
+    } catch {
+      // optional
+    }
+    resolvedAudio.push({
+      ...track,
+      type: 'audio',
+      asset: workName,
+      language: track.language || null,
+    });
+  }
+
+  const voiceLanguage = ['en', 'km', 'both'].includes(req.body?.voiceLanguage)
+    ? req.body.voiceLanguage
+    : (timeline.voiceLanguage || 'en');
+
+  timeline = {
+    ...timeline,
+    clips: resolvedClips,
+    audio: resolvedAudio,
+    voiceLanguage,
+  };
 
   if (timeline.subtitles) {
     try {

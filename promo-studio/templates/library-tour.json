@@ -1,5 +1,5 @@
 {
-  "name": "first-promo",
+  "name": "library-tour",
   "width": 1080,
   "height": 1920,
   "fps": 30,
@@ -10,21 +10,21 @@
       "type": "either",
       "asset": "hook.png",
       "assets": ["hook.mp4", "hook.png"],
-      "duration": 3,
+      "duration": 3.5,
       "maxDuration": 8
     },
     {
       "id": "screen",
       "type": "video",
       "asset": "screen.mp4",
-      "maxDuration": 28
+      "maxDuration": 45
     },
     {
       "id": "endcard",
       "type": "either",
       "asset": "poster.png",
       "assets": ["poster.mp4", "poster.png"],
-      "duration": 2,
+      "duration": 2.5,
       "maxDuration": 8
     }
   ],
@@ -44,6 +44,6 @@
       "required": false
     }
   ],
-  "subtitles": "first-promo.srt",
-  "notes": "HP Promo pack: hook.png|hook.mp4 → screen.mp4 → poster.png|poster.mp4 + optional EN/KM voice. Reaction/voice exports from HP Promo are MP4."
+  "subtitles": "library-tour.srt",
+  "notes": "Pair with HP Promo Hook · Lost in library (hook.png) + Screen · Library tour (screen.mp4) + Poster App Store / Khmer card (poster.png). Story: lost in a huge library → find Grade 3 packs in the app."
 }

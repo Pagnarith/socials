@@ -186,6 +186,12 @@
     <div class="card panel" data-step="5" hidden>
       <h2>5. Render</h2>
       <p class="hint" id="renderSummary"></p>
+      <label for="voiceLanguage">Voice language</label>
+      <select id="voiceLanguage">
+        <option value="en">English (voice-en)</option>
+        <option value="km">Khmer (voice-km)</option>
+        <option value="both">Both (EN then KM)</option>
+      </select>
       <div class="actions">
         <button class="secondary" id="backToVerify" type="button">Back</button>
         <button id="renderBtn" type="button">Render</button>
@@ -268,18 +274,33 @@
     }
 
     function describeNeed(req) {
-      const accept = req.accept || (req.type === 'image' ? ['image'] : req.type === 'either' ? ['video', 'image'] : ['video']);
+      const accept = req.accept || (
+        req.type === 'image' ? ['image']
+          : req.type === 'either' ? ['video', 'image']
+            : req.type === 'audio' ? ['audio']
+              : ['video']
+      );
+      const optional = req.required === false ? ' · optional' : '';
+      if (accept.includes('audio')) {
+        return `Voice talk${req.language ? ` (${req.language.toUpperCase()})` : ''}${optional}`;
+      }
       if (accept.includes('video') && accept.includes('image')) {
-        return `Video up to ${formatSeconds(req.seconds?.maxDuration)} or PNG still ${formatSeconds(req.seconds?.stillDuration)}`;
+        return `Video up to ${formatSeconds(req.seconds?.maxDuration)} or PNG still ${formatSeconds(req.seconds?.stillDuration)}${optional}`;
       }
       if (accept.includes('image') && !accept.includes('video')) {
-        return `Image still · on screen ${formatSeconds(req.seconds?.stillDuration)}`;
+        return `PNG/JPEG still · on screen ${formatSeconds(req.seconds?.stillDuration)}${optional}`;
       }
-      return `Video · up to ${formatSeconds(req.seconds?.maxDuration)}`;
+      return `Video · up to ${formatSeconds(req.seconds?.maxDuration)}${optional}`;
     }
 
     function slotAccept(req) {
-      const accept = req.accept || (req.type === 'image' ? ['image'] : req.type === 'either' ? ['video', 'image'] : ['video']);
+      const accept = req.accept || (
+        req.type === 'image' ? ['image']
+          : req.type === 'either' ? ['video', 'image']
+            : req.type === 'audio' ? ['audio']
+              : ['video']
+      );
+      if (accept.includes('audio')) return 'audio/*,.mp3,.m4a,.aac,.wav';
       if (accept.includes('video') && accept.includes('image')) return 'video/*,image/png,image/jpeg,image/webp';
       if (accept.includes('image')) return 'image/png,image/jpeg,image/webp';
       return 'video/*';
@@ -299,6 +320,9 @@
       const ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
       const match = candidates.find((name) => name.toLowerCase().endsWith(ext));
       if (match) return match;
+      if (file.type.startsWith('audio/') || /\.(mp3|m4a|aac|wav|caf)$/i.test(file.name)) {
+        return candidates.find((n) => /\.(mp3|m4a|aac|wav)$/i.test(n)) || req.expectedName;
+      }
       if (file.type.startsWith('image/')) {
         return candidates.find((n) => /\.(png|jpe?g|webp)$/i.test(n)) || `hook${ext || '.png'}`;
       }
@@ -354,21 +378,18 @@
         root.innerHTML = '<p class="hint">Pick a template first.</p>';
         return;
       }
-      const names = (template.requirements || [])
-        .map((r) => slotCandidates(r).join(' or '))
-        .join(' / ');
       document.getElementById('uploadHint').textContent =
-        `Upload ${names}. Hook accepts mp4 or png.`;
+        `Upload required slots for ${template.name}. Voice EN/KM are optional until you have TTS files (see templates/*-tts-*.txt).`;
 
       root.innerHTML = (template.requirements || []).map((req) => {
         const uploaded = findUploadedForReq(req);
         const accept = slotAccept(req);
         const meta = uploaded
           ? `${uploaded.name} · ${uploaded.kind || 'file'}${uploaded.duration != null ? ` · ${formatSeconds(uploaded.duration)}` : ''}${uploaded.width && uploaded.height ? ` · ${uploaded.width}x${uploaded.height}` : ''}`
-          : `Not uploaded yet · accept ${slotCandidates(req).join(' or ')}`;
+          : `Not uploaded yet · accept ${slotCandidates(req).join(' or ')}${req.required === false ? ' (optional)' : ''}`;
         return `
           <div class="row ${uploaded ? 'ok' : ''}">
-            <strong>${req.id}</strong>
+            <strong>${req.id}${req.required === false ? ' <span class="meta">(optional)</span>' : ''}</strong>
             <div class="meta">${describeNeed(req)}</div>
             <label for="file-${req.expectedName}">Choose ${slotCandidates(req).join(' / ')}</label>
             <input id="file-${req.expectedName}" type="file" accept="${accept}" data-slot="${req.expectedName}" />
@@ -377,7 +398,9 @@
         `;
       }).join('');
 
-      const allPresent = (template.requirements || []).every((req) => findUploadedForReq(req));
+      const allPresent = (template.requirements || []).every((req) =>
+        req.required === false || findUploadedForReq(req),
+      );
       assetsReady = allPresent;
       document.getElementById('assetsContinue').disabled = !allPresent;
     }
@@ -662,7 +685,11 @@
         const res = await fetch('/v1/render', {
           method: 'POST',
           headers: { ...headers(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ template, assetMap: currentAssetMap() }),
+          body: JSON.stringify({
+            template,
+            assetMap: currentAssetMap(),
+            voiceLanguage: document.getElementById('voiceLanguage').value || 'en',
+          }),
         });
         const data = await res.json();
         document.getElementById('out').textContent = JSON.stringify(data, null, 2);

@@ -1,5 +1,5 @@
 {
-  "name": "first-promo",
+  "name": "print-practice",
   "width": 1080,
   "height": 1920,
   "fps": 30,
@@ -17,7 +17,7 @@
       "id": "screen",
       "type": "video",
       "asset": "screen.mp4",
-      "maxDuration": 28
+      "maxDuration": 45
     },
     {
       "id": "endcard",
@@ -44,6 +44,6 @@
       "required": false
     }
   ],
-  "subtitles": "first-promo.srt",
-  "notes": "HP Promo pack: hook.png|hook.mp4 → screen.mp4 → poster.png|poster.mp4 + optional EN/KM voice. Reaction/voice exports from HP Promo are MP4."
+  "subtitles": "print-practice.srt",
+  "notes": "HP Promo Screen · Print & practice. Preferred hook: Home greeting. Story: open a pack → Print worksheet → PDF share sheet for tonight’s homework."
 }

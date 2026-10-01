@@ -4,10 +4,11 @@ Remote **video assemble API** so you and the Cursor agent can build CapCut-style
 
 This is **not** a CapCut clone (no timeline GUI editor). It is a local/remote service that:
 
-1. Accepts your real screen recordings + poster
+1. Accepts HP Promo exports (`hook.png`/`hook.mp4`, `screen.mp4`, `poster.png`/`poster.mp4`) + optional voice
 2. Applies a JSON timeline (hook → screen → end card)
-3. Burns in bilingual SRT captions
-4. Returns a 9:16 MP4 the agent can iterate on via HTTP
+3. Burns bilingual SRT captions
+4. Mixes EN and/or KM voice-over
+5. Returns a 9:16 MP4
 
 ## Quick start
 
@@ -22,12 +23,52 @@ Open http://localhost:8787 — or call the API below.
 
 Requires **ffmpeg** (+ **ffprobe**) on PATH (`brew install ffmpeg`).
 
-## Agent workflow (how we work together)
+## HP Promo → Promo Studio
 
-1. You film `hook.mp4` + `screen.mp4` (see `docs/first-promo-video.md`).
-2. Upload poster (or we copy from exercise assets).
-3. Agent calls `POST /v1/render` with template `first-promo`.
-4. You download the MP4, review, ask for timing/caption tweaks; agent updates SRT/timeline and re-renders.
+Film assets in **HP Promo** (`exercise/ios/HomeworkPalettePromo`), then upload here.
+
+| HP Promo flow | Export | Promo Studio template |
+|---------------|--------|------------------------|
+| Screen · Library tour | `screen.mp4` (+ optional mic/reaction) | `library-tour` |
+| Screen · Grade focus | `screen.mp4` (+ optional mic/reaction) | `grade-focus` |
+| Screen · Open a pack | `screen.mp4` (+ optional mic/reaction) | `open-pack` |
+| Screen · Print & practice | `screen.mp4` (+ optional mic/reaction) | `print-practice` |
+| Screen · Bilingual night | `screen.mp4` (+ optional mic/reaction) | `bilingual-night` |
+| Hook · Lost in library | `hook.png` or `hook.mp4` | preferred hook for `library-tour` |
+| Hook · Home greeting | `hook.png` or `hook.mp4` | preferred hook for `open-pack` / `print-practice` / `bilingual-night` |
+| Poster · App Store / Khmer card | `poster.png` or `poster.mp4` | every template (endcard) |
+
+In HP Promo, **Add to export** = None / Voice (mic) / Reaction (camera) / Both. Stills become MP4 when not None.
+
+Every template expects:
+
+| Slot | File | Notes |
+|------|------|--------|
+| hook | `hook.png` **or** `hook.mp4` | Still ~3s, or short reaction/voice clip |
+| screen | `screen.mp4` | UI tour (± mic / camera PiP) |
+| endcard | `poster.png` **or** `poster.mp4` | Still ~2s, or short reaction/voice clip |
+| voice-en | `voice-en.mp3` | Optional — script in `templates/*-tts-en.txt` |
+| voice-km | `voice-km.mp3` | Optional — script in `templates/*-tts-km.txt` |
+
+Generate voice offline (CapCut / system TTS / Gemini) from the `*-tts-*.txt` scripts, then upload.
+
+## Templates
+
+| Name | Screen tour | Captions / scripts |
+|------|-------------|--------------------|
+| `first-promo` | Generic / first cut | `first-promo.srt`, `first-promo-tts-en.txt`, `first-promo-tts-km.txt` |
+| `library-tour` | Library tour (opens on Lost in library hook) | `library-tour.srt`, `library-tour-tts-*.txt` |
+| `grade-focus` | Grade focus | `grade-focus.srt`, `grade-focus-tts-*.txt` |
+| `open-pack` | Open a pack (Home greeting hook) | `open-pack.srt`, `open-pack-tts-*.txt` |
+| `print-practice` | Print & practice | `print-practice.srt`, `print-practice-tts-*.txt` |
+| `bilingual-night` | Bilingual night (EN → KM) | `bilingual-night.srt`, `bilingual-night-tts-*.txt` |
+
+## Agent workflow
+
+1. Run HP Promo → export `screen.mp4`, hook + poster as PNG or MP4.
+2. Upload assets (+ optional `voice-en.mp3` / `voice-km.mp3`).
+3. Render with template `library-tour`, `grade-focus`, `open-pack`, `print-practice`, or `bilingual-night` and `voiceLanguage`.
+4. Download MP4, tweak SRT/scripts, re-render.
 
 ```bash
 # Upload
@@ -35,21 +76,12 @@ curl -s -X POST http://localhost:8787/v1/assets \
   -H "Authorization: Bearer $PROMO_STUDIO_API_KEY" \
   -F file=@screen.mp4 -F name=screen.mp4
 
-# Render (returns 202 immediately — poll job for progress)
+# Render (returns 202 — poll job)
 JOB=$(curl -s -X POST http://localhost:8787/v1/render \
   -H "Authorization: Bearer $PROMO_STUDIO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"template":"first-promo"}')
+  -d '{"template":"library-tour","voiceLanguage":"en"}')
 echo "$JOB"
-ID=$(echo "$JOB" | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')
-
-# Poll until done / failed
-curl -s http://localhost:8787/v1/jobs/$ID \
-  -H "Authorization: Bearer $PROMO_STUDIO_API_KEY"
-
-# Download
-curl -L -o out.mp4 http://localhost:8787/v1/jobs/$ID/download \
-  -H "Authorization: Bearer $PROMO_STUDIO_API_KEY"
 ```
 
 ## API
@@ -57,12 +89,13 @@ curl -L -o out.mp4 http://localhost:8787/v1/jobs/$ID/download \
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/v1/health` | Liveness |
-| GET | `/v1/templates` | List templates |
+| GET | `/v1/templates` | List templates (+ requirements) |
 | GET | `/v1/templates/:name` | Template JSON |
 | POST | `/v1/assets` | Upload file (`multipart file` + optional `name`) |
 | GET | `/v1/assets` | List uploads |
-| POST | `/v1/render` | Queue render (`202` + `id`); poll job for progress |
-| GET | `/v1/jobs/:id` | Job status / `progress` / result |
+| POST | `/v1/validate` | Check uploads vs template |
+| POST | `/v1/render` | Queue render (`202` + `id`); body may include `voiceLanguage`: `en` \| `km` \| `both` |
+| GET | `/v1/jobs/:id` | Job status / progress / result |
 | GET | `/v1/jobs/:id/download` | MP4 |
 
 Auth: `Authorization: Bearer <PROMO_STUDIO_API_KEY>` or `x-api-key`.  
@@ -72,37 +105,35 @@ If the key is unset / still the example value, the API stays open for local dev.
 
 ```json
 {
+  "name": "library-tour",
   "width": 1080,
   "height": 1920,
   "fps": 30,
+  "voiceLanguage": "en",
   "clips": [
-    { "id": "hook", "type": "video", "asset": "hook.mp4", "maxDuration": 3 },
-    { "id": "screen", "type": "video", "asset": "screen.mp4", "maxDuration": 28 },
-    { "id": "endcard", "type": "image", "asset": "poster.png", "duration": 2 }
+    { "id": "hook", "type": "either", "asset": "hook.png", "assets": ["hook.mp4", "hook.png"], "duration": 3, "maxDuration": 8 },
+    { "id": "screen", "type": "video", "asset": "screen.mp4", "maxDuration": 45 },
+    { "id": "endcard", "type": "either", "asset": "poster.png", "assets": ["poster.mp4", "poster.png"], "duration": 2, "maxDuration": 8 }
   ],
-  "subtitles": "first-promo.srt"
+  "audio": [
+    { "id": "voice-en", "type": "audio", "asset": "voice-en.mp3", "language": "en", "required": false },
+    { "id": "voice-km", "type": "audio", "asset": "voice-km.mp3", "language": "km", "required": false }
+  ],
+  "subtitles": "library-tour.srt"
 }
 ```
 
-Default template: [`templates/first-promo.json`](templates/first-promo.json)  
-Captions: [`templates/first-promo.srt`](templates/first-promo.srt)
+`voiceLanguage: "both"` concatenates EN then KM under the video (`-shortest`).
 
-## What comes later (not in MVP)
+## What comes later
 
 - Cloud host (Fly/Railway) — Vercel is a poor fit for long ffmpeg jobs
-- Music / TTS mix
+- Built-in TTS synthesis
+- Music bed + ducking under voice
 - Full visual editor UI
 
-Render is already async: `POST /v1/render` returns `202` and progress lives on `GET /v1/jobs/:id`.
-
-For now: **you film, agent renders & iterates via this API.**
-
 ## iOS automation companion
-
-Promo recording uses the **HP Promo** clone (full copy of the app):
 
 - Project: `exercise/ios/HomeworkPalettePromo`
 - Bundle ID: `com.pagnarith.homeworkpalette.promo`
 - Docs: `exercise/ios/HomeworkPalettePromo/PROMO_TOUR.md`
-
-Production App Store app stays at `exercise/ios/HomeworkPalette`.

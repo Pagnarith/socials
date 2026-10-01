@@ -1,5 +1,5 @@
 {
-  "name": "first-promo",
+  "name": "bilingual-night",
   "width": 1080,
   "height": 1920,
   "fps": 30,
@@ -10,21 +10,21 @@
       "type": "either",
       "asset": "hook.png",
       "assets": ["hook.mp4", "hook.png"],
-      "duration": 3,
+      "duration": 3.5,
       "maxDuration": 8
     },
     {
       "id": "screen",
       "type": "video",
       "asset": "screen.mp4",
-      "maxDuration": 28
+      "maxDuration": 50
     },
     {
       "id": "endcard",
       "type": "either",
       "asset": "poster.png",
       "assets": ["poster.mp4", "poster.png"],
-      "duration": 2,
+      "duration": 2.5,
       "maxDuration": 8
     }
   ],
@@ -44,6 +44,6 @@
       "required": false
     }
   ],
-  "subtitles": "first-promo.srt",
-  "notes": "HP Promo pack: hook.png|hook.mp4 → screen.mp4 → poster.png|poster.mp4 + optional EN/KM voice. Reaction/voice exports from HP Promo are MP4."
+  "subtitles": "bilingual-night.srt",
+  "notes": "HP Promo Screen · Bilingual night. Preferred hook: Home greeting; endcard EN or KM to match voice. Story: same pack in English → Settings → Khmer → open pack again."
 }

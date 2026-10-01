@@ -9,6 +9,7 @@
  * Requires: vercel CLI logged in to the socials project.
  */
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -36,10 +37,20 @@ function upsertEnv(name, value) {
   console.log(`set ${name}`);
 }
 
-const refresh =
+let refreshToken =
   arg('refresh') ||
   process.env.YOUTUBE_REFRESH_TOKEN ||
   '';
+if (!refreshToken && fs.existsSync('tokens/youtube-analytics.json')) {
+  try {
+    const saved = JSON.parse(fs.readFileSync('tokens/youtube-analytics.json', 'utf8'));
+    refreshToken = saved.refresh_token || '';
+    if (refreshToken) console.log('Using refresh token from tokens/youtube-analytics.json');
+  } catch {
+    // ignore
+  }
+}
+
 const clientId =
   arg('client-id') ||
   process.env.YT_CLIENT_ID ||
@@ -51,13 +62,13 @@ const clientSecret =
   process.env.YOUTUBE_CLIENT_SECRET ||
   '';
 
-if (!refresh) {
+if (!refreshToken) {
   console.error('Missing --refresh token. Run:');
-  console.error('  node scripts/auth-youtube-analytics.js');
+  console.error('  node scripts/auth-youtube-analytics.js --force');
   process.exit(1);
 }
 
-upsertEnv('YOUTUBE_REFRESH_TOKEN', refresh);
+upsertEnv('YOUTUBE_REFRESH_TOKEN', refreshToken);
 if (clientId) upsertEnv('YT_CLIENT_ID', clientId);
 if (clientSecret) upsertEnv('YT_CLIENT_SECRET', clientSecret);
 

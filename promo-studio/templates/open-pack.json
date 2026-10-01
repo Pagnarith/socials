@@ -1,5 +1,5 @@
 {
-  "name": "first-promo",
+  "name": "open-pack",
   "width": 1080,
   "height": 1920,
   "fps": 30,
@@ -17,7 +17,7 @@
       "id": "screen",
       "type": "video",
       "asset": "screen.mp4",
-      "maxDuration": 28
+      "maxDuration": 40
     },
     {
       "id": "endcard",
@@ -44,6 +44,6 @@
       "required": false
     }
   ],
-  "subtitles": "first-promo.srt",
-  "notes": "HP Promo pack: hook.png|hook.mp4 → screen.mp4 → poster.png|poster.mp4 + optional EN/KM voice. Reaction/voice exports from HP Promo are MP4."
+  "subtitles": "open-pack.srt",
+  "notes": "HP Promo Screen · Open a pack. Preferred hook: Home greeting. Story: pick Grade 3 → open the Start here pack → see questions and print/speak/quiz."
 }

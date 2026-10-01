@@ -165,6 +165,80 @@ async function burnCaptionsWithOverlays(videoPath, srtPath, outPath, workDir, si
   return { method: 'png-overlay', cues: overlays.length };
 }
 
+function pickVoiceTracks(audioTracks, voiceLanguage = 'en') {
+  const list = Array.isArray(audioTracks) ? audioTracks : [];
+  if (!list.length) return [];
+  if (voiceLanguage === 'both') return list;
+  const preferred = list.filter((t) => (t.language || '').toLowerCase() === voiceLanguage);
+  if (preferred.length) return preferred;
+  return list.slice(0, 1);
+}
+
+async function normalizeAudio(input, output) {
+  await run(ffmpegBin(), [
+    '-y',
+    '-i', input,
+    '-vn',
+    '-ac', '2',
+    '-ar', '44100',
+    '-c:a', 'aac',
+    '-b:a', '192k',
+    output,
+  ]);
+}
+
+/** Attach voice-over under a silent video (trim/pad to video length). */
+async function muxVoiceOntoVideo(videoPath, audioPaths, outPath) {
+  if (!audioPaths.length) {
+    await fs.copyFile(videoPath, outPath);
+    return { method: 'none' };
+  }
+
+  if (audioPaths.length === 1) {
+    await run(ffmpegBin(), [
+      '-y',
+      '-i', videoPath,
+      '-i', audioPaths[0],
+      '-map', '0:v:0',
+      '-map', '1:a:0',
+      '-c:v', 'copy',
+      '-c:a', 'aac',
+      '-b:a', '192k',
+      '-shortest',
+      outPath,
+    ]);
+    return { method: 'single', tracks: 1 };
+  }
+
+  // EN then KM (or whatever order the template lists) concatenated into one VO.
+  const listFile = `${outPath}.audio.txt`;
+  const body = audioPaths.map((p) => `file '${p.replace(/'/g, "'\\''")}'`).join('\n');
+  await fs.writeFile(listFile, body, 'utf8');
+  const concatAudio = `${outPath}.vo.m4a`;
+  await run(ffmpegBin(), [
+    '-y',
+    '-f', 'concat',
+    '-safe', '0',
+    '-i', listFile,
+    '-c:a', 'aac',
+    '-b:a', '192k',
+    concatAudio,
+  ]);
+  await run(ffmpegBin(), [
+    '-y',
+    '-i', videoPath,
+    '-i', concatAudio,
+    '-map', '0:v:0',
+    '-map', '1:a:0',
+    '-c:v', 'copy',
+    '-c:a', 'aac',
+    '-b:a', '192k',
+    '-shortest',
+    outPath,
+  ]);
+  return { method: 'concat', tracks: audioPaths.length };
+}
+
 export async function renderTimeline(timeline, jobId, workDir, { onProgress } = {}) {
   const width = timeline.width ?? 1080;
   const height = timeline.height ?? 1920;
@@ -182,7 +256,7 @@ export async function renderTimeline(timeline, jobId, workDir, { onProgress } = 
     await report(onProgress, {
       step: 'normalize',
       message: `Normalizing ${label} (${i + 1}/${clips.length})…`,
-      percent: Math.max(2, Math.round(((i + 0.5) / (clips.length + 3)) * 100)),
+      percent: Math.max(2, Math.round(((i + 0.5) / (clips.length + 4)) * 100)),
       clipIndex: i,
       clipCount: clips.length,
     });
@@ -204,16 +278,16 @@ export async function renderTimeline(timeline, jobId, workDir, { onProgress } = 
   await report(onProgress, {
     step: 'concat',
     message: 'Concatenating clips…',
-    percent: Math.round((clips.length / (clips.length + 3)) * 100),
+    percent: Math.round((clips.length / (clips.length + 4)) * 100),
   });
   const concatPath = path.join(workDir, 'concat.mp4');
   await concatClips(normalized, concatPath);
 
-  const finalPath = path.join(OUTPUTS_DIR, `${jobId}.mp4`);
+  let silentVideo = concatPath;
   let captions = { method: 'skipped' };
   if (timeline.subtitles) {
-    const captionBase = Math.round(((clips.length + 1) / (clips.length + 3)) * 100);
-    const captionSpan = Math.max(8, Math.round(100 / (clips.length + 3)));
+    const captionBase = Math.round(((clips.length + 1) / (clips.length + 4)) * 100);
+    const captionSpan = Math.max(8, Math.round(100 / (clips.length + 4)));
     await report(onProgress, {
       step: 'captions',
       message: 'Burning captions…',
@@ -239,19 +313,43 @@ export async function renderTimeline(timeline, jobId, workDir, { onProgress } = 
         await report(onProgress, { ...p, percent: Math.min(captionBase + captionSpan - 1, pct) });
       },
     );
+    silentVideo = burned;
+  }
+
+  const voiceTracks = pickVoiceTracks(timeline.audio, timeline.voiceLanguage || 'en');
+  let voice = { method: 'skipped' };
+  const finalPath = path.join(OUTPUTS_DIR, `${jobId}.mp4`);
+  if (voiceTracks.length) {
+    await report(onProgress, {
+      step: 'voice',
+      message: `Mixing voice (${timeline.voiceLanguage || 'en'})…`,
+      percent: Math.round(((clips.length + 2) / (clips.length + 4)) * 100),
+    });
+    const audioDir = path.join(workDir, 'audio');
+    await fs.mkdir(audioDir, { recursive: true });
+    const normalizedAudio = [];
+    for (let i = 0; i < voiceTracks.length; i += 1) {
+      const track = voiceTracks[i];
+      const input = await findAsset(track.asset, workDir);
+      const out = path.join(audioDir, `${String(i).padStart(2, '0')}-${track.id || 'voice'}.m4a`);
+      await normalizeAudio(input, out);
+      normalizedAudio.push(out);
+    }
+    const withVoice = path.join(workDir, 'with-voice.mp4');
+    voice = await muxVoiceOntoVideo(silentVideo, normalizedAudio, withVoice);
     await report(onProgress, {
       step: 'finalize',
       message: 'Writing final MP4…',
-      percent: Math.round(((clips.length + 2) / (clips.length + 3)) * 100),
+      percent: Math.round(((clips.length + 3) / (clips.length + 4)) * 100),
     });
-    await fs.copyFile(burned, finalPath);
+    await fs.copyFile(withVoice, finalPath);
   } else {
     await report(onProgress, {
       step: 'finalize',
       message: 'Writing final MP4…',
-      percent: Math.round(((clips.length + 2) / (clips.length + 3)) * 100),
+      percent: Math.round(((clips.length + 3) / (clips.length + 4)) * 100),
     });
-    await fs.copyFile(concatPath, finalPath);
+    await fs.copyFile(silentVideo, finalPath);
   }
 
   await report(onProgress, {
@@ -273,5 +371,6 @@ export async function renderTimeline(timeline, jobId, workDir, { onProgress } = 
     height,
     fps,
     captions,
+    voice,
   };
 }

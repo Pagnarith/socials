@@ -8,6 +8,7 @@ const IMAGE_FORMATS = new Set([
   'png_pipe', 'image2', 'image2pipe', 'jpeg_pipe', 'gif', 'webp_pipe', 'tiff_pipe', 'bmp_pipe',
 ]);
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff']);
+const AUDIO_EXTS = new Set(['.mp3', '.m4a', '.aac', '.wav', '.flac', '.ogg', '.opus', '.caf']);
 
 function ffprobeJson(filePath) {
   return new Promise((resolve, reject) => {
@@ -54,13 +55,23 @@ export async function probeMedia(filePath) {
   const format = data.format || {};
   const streams = Array.isArray(data.streams) ? data.streams : [];
   const visual = streams.find((s) => s.codec_type === 'video') || null;
+  const audio = streams.find((s) => s.codec_type === 'audio') || null;
   const duration = Number.parseFloat(format.duration);
   const fileName = path.basename(filePath);
-  const codecName = visual?.codec_name || null;
+  const codecName = visual?.codec_name || audio?.codec_name || null;
   const formatName = format.format_name || null;
-  const kind = isStillImage({ formatName, codecName, fileName })
-    ? 'image'
-    : (visual ? 'video' : 'image');
+  const ext = path.extname(fileName).toLowerCase();
+
+  let kind = 'image';
+  if (AUDIO_EXTS.has(ext) || (audio && !visual)) {
+    kind = 'audio';
+  } else if (isStillImage({ formatName, codecName: visual?.codec_name || null, fileName })) {
+    kind = 'image';
+  } else if (visual) {
+    kind = 'video';
+  } else if (audio) {
+    kind = 'audio';
+  }
 
   return {
     name: fileName,

@@ -46,6 +46,20 @@ If OAuth is missing, `watchHours` stays `null` (dashboard shows `n/a`).
 
 ## Notes
 
-- Refresh tokens last until revoked; no daily cron required (access tokens are refreshed per request).
+- Refresh tokens last until revoked **when the Google OAuth app is In production**.
+- If the OAuth consent screen is still in **Testing**, Google expires refresh tokens after **~7 days** → dashboard shows `watchHoursError: "Token has been expired or revoked."` Re-run auth below, or publish the OAuth app to Production (only your Google account as channel owner still needed).
+- Access tokens are refreshed per request from `YOUTUBE_REFRESH_TOKEN`.
 - Scope used: `yt-analytics.readonly` + `youtube.readonly`.
 - Token file (local only, gitignored via `tokens/`): `tokens/youtube-analytics.json`.
+
+## Re-auth after expiry
+
+```bash
+cd /Users/imphanpagnarith/projects/socials
+rm -f tokens/youtube-analytics.json
+node scripts/auth-youtube-analytics.js --force
+# paste the code from the localhost URL immediately
+node scripts/set-youtube-analytics-token.js   # reads tokens/youtube-analytics.json
+vercel deploy --prod --yes
+curl -sS https://socials-seven-beta.vercel.app/api/analytics/overview | jq .platforms.youtube
+```
